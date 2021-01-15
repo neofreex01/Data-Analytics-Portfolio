@@ -1,0 +1,261 @@
+---
+title: "Problem set 1 Research Design"
+author: "Hung-Hsiang Chien"
+output:
+  html_document:
+    keep_md: true
+    df_print: paged
+    toc: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      fig.path = "./figure/figure")
+```
+
+# Question 1
+
+```{r warning = FALSE, echo=FALSE}
+library(lubridate)
+library(stringr)
+library(tidyverse)
+library(data.table)
+# library(lmtest)
+library(stargazer)
+# library(skimr)
+library(moderndive)
+# library(bbplot)
+library(haven)
+library(mfx)
+```
+Import datasets from the console
+```{r warning = FALSE}
+ ps1 = read_csv("./dataset/ps1.csv", 
+                col_types = cols(log_dailywages = col_number()))
+
+```
+
+## (a) Data process
+
+```{r}
+dataset=ps1 %>%
+  mutate(female = if_else(sex=="F",1,0),age=2001-birth)
+```
+
+## (b) Wage distribution against age
+```{r}
+wage_distribute= dataset %>%
+  group_by(age) %>%
+  summarise(wage_avg=mean(exp(log_dailywages))) %>%
+  ggplot(aes(x=age,y=wage_avg))+
+  geom_bar(stat="identity",fill="red")+
+  labs(title="Wage of individuals across the age")+
+  labs(x="Age", y="Wage(in average)")+
+  guides(colour=guide_legend(title.theme=NULL))+
+  theme(legend.position = "bottom") + 
+  theme_bw()
+  
+
+wage_distribute
+
+```
+
+##(c) Regression
+
+With the age profile, I use a regression to obtain an expectation wage condition on age, i.e. uses age as a predictor to guess the expectation age.
+
+```{r}
+dataset$age =as.factor(dataset$age)
+model_1=lm(data = dataset, log_dailywages~age)
+stargazer(model_1, type="text",style="qje", omit = "age", 
+          omit.labels = "Omit Age variables "
+          )
+
+```
+
+##(d) Male and Female wage distribution
+
+```{r}
+wage_male_distribute = dataset %>%
+  filter(female=="0") %>%
+  group_by(age) %>%
+  summarise(wage_avg=mean(exp(log_dailywages))) %>%
+  ggplot(aes(x=as.integer(as.character(age)),y=wage_avg))+
+  geom_bar(stat="identity",fill="blue")+
+  labs(title="Wage of male individuals across the age")+
+  labs(x="Age", y="Wage(in average)")+
+  guides(colour=guide_legend(title.theme=NULL))+
+  theme(legend.position = "bottom") + 
+  theme_bw()
+
+wage_female_distribute= dataset %>%
+  filter(female=="1") %>%
+  group_by(age) %>%
+  summarise(wage_avg=mean(exp(log_dailywages))) %>%
+  ggplot(aes(x=as.integer(as.character(age)),y=wage_avg))+
+  geom_bar(stat="identity",fill="red")+
+  labs(title="Wage of female individuals across the age")+
+  labs(x="Age", y="Wage(in average)")+
+  guides(colour=guide_legend(title.theme=NULL))+
+  theme(legend.position = "bottom") + 
+  theme_bw()
+
+wage_female_distribute
+
+wage_male_distribute
+
+```
+
+##(e)
+
+```{r}
+
+model_2=lm(log_dailywages~age+female+female*age,data=dataset)
+stargazer(model_2, type="text", style = "qje",
+          omit = "age",
+          omit.labels = "Omitted Age variables ")
+
+```
+
+##(f)
+
+```{r}
+
+dataset$age = as.numeric(as.character(dataset$age))
+model_3=lm(log_dailywages~female+age+I(age^2),data=dataset)
+stargazer(model_3,type="text", style="qje",
+          covariate.labels = c("female","age","$age^{2}$","intercept")
+         )
+```
+
+
+##(g)
+
+The prediction is very similar to the expectation value. However, when age increases, we can find that male and femael start to have diverse. Perhaps, we could also use an interaction term between female and $age^{2}$.
+
+```{r}
+df = dataset %>% 
+  group_by(age,female) %>%
+  summarise(avg_wage=mean(log_dailywages))
+
+
+prediction=get_regression_points(model_3) %>%
+  group_by(age,female) %>%
+  summarise(avg_wage=mean(log_dailywages),wage_hat=mean(log_dailywages_hat))
+  
+
+ggplot(prediction,aes(x=age,shape=as.factor(female)))+
+  geom_point(aes(y=avg_wage))+
+  geom_smooth(aes(y=wage_hat,color=as.factor(female)))+
+  geom_point(aes(y=wage_hat,color=as.factor(female)))+
+  scale_shape_discrete(labels=c("male","female"))+
+  scale_color_discrete(labels=c("male","female"))+
+  theme(legend.title=element_blank())+
+  labs(title="Prediction vs Conditioinal Mean")+
+  labs(x="Age",y="wage(daily)")+
+  theme(panel.border = element_blank()) + 
+  guides(color = guide_legend("Prediction",
+                              override.aes=list(fill=NA)), 
+         shape = guide_legend("Conditional mean")) +
+  theme_bw()
+
+```
+
+# 2. Replication of Olken 2017
+
+## (a)
+He might violate the assumption of SUTVA (Stable Unit Treatment Value Assumption)
+```{r}
+Olken <- read_dta("./dataset/Olken.dta")
+```
+
+## (b)
+```{r}
+Olken=Olken %>%
+  mutate(auditstratnum=factor(auditstratnum)) 
+model1<-lm(lndiffeall3mat ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
+model2<-lm(lndiffeburuh ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
+model3<-lm(lndiffeall4 ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
+model4<-lm(lndiffeall4mainancil ~audit_rand+ undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
+stargazer(model1, model2, model3, model4, type="text",
+          omit        = "auditstratnum",
+          omit.labels = "Ommited Stratum Fix Effects")
+
+```
+
+## (c)
+
+Table 2 shows the relationship between village and treatments. We use a probit model where the dependent variables are treatment dummies. We can see that village characteristics do not siginifcantly affect the dummies and the coefficient is very small.
+
+```{r}
+model1 <- probitmfx(audit_rand ~ 
+              zpop + totalmesjid + totalallocation + z4RABnumsubproj
+            + zpercentpoorpra + zdistancekec + zkadesedyears
+            + zkadesage + zkadesbengkoktotal + podeszhill
+            , data = Olken, clustervar1 = "kecid")
+
+model2 <- probitmfx(und_rand ~ 
+              zpop + totalmesjid + totalallocation + z4RABnumsubproj
+            + zpercentpoorpra + zdistancekec + zkadesedyears
+            + zkadesage + zkadesbengkoktotal + podeszhill
+            , data = Olken
+            , clustervar1 = "kecid")
+
+data_cond <- Olken %>%
+  filter(undfpm_rand == 1)
+
+model3 <- probitmfx(fpm_rand ~ 
+                    zpop + totalmesjid + totalallocation + z4RABnumsubproj
+                  + zpercentpoorpra + zdistancekec + zkadesedyears
+                  + zkadesage + zkadesbengkoktotal + podeszhill
+                  , data = data_cond
+                  , clustervar1 = "kecid")                          
+stargazer(model1$mfxest, model2$mfxest, model3$mfxest, type = 'text', header = F)
+
+```
+
+
+## (d)
+
+```{r}
+Olken=Olken %>%
+  mutate(corruption = lndiffeall4mainancil*totalprojusd) %>%
+  mutate(realcorruption=corruption-1200) %>%
+  mutate(true_realcorruption=if_else(realcorruption<0,0,realcorruption))
+
+```
+
+## (e) 
+
+```{r, results='asis', mesage=FALSE, warning=FALSE}
+
+
+model1 <- lm(true_realcorruption ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
+stargazer(model1, type='html',
+          omit = "auditstratnum",
+          omit.labels = "Ommited Stratum Fix Effects")
+```
+
+
+
+## (f)
+
+```{r}
+
+Olken=Olken %>%
+  mutate(corruption_min = if_else(corruption>0,1,0)) %>%
+  mutate(corruption_bad = if_else(corruption>1200,1,0)) 
+  
+model2<-lm(corruption_min ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum ,data=Olken)
+model3<-lm(corruption_bad ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum, data=Olken)
+
+stargazer(model1, model2, model3, 
+          type="text",
+          omit        = "auditstratnum",
+          omit.labels = "Ommited Stratum Fix Effects")
+
+
+
+```
