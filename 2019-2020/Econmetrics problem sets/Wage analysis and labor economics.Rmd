@@ -70,13 +70,13 @@ With the wage vs age distribution, I use a regression to obtain an expectation w
 ```{r}
 dataset$age =as.factor(dataset$age)
 model_1=lm(data = dataset, log_dailywages~age)
-stargazer(model_1, type="html", style = "qje",
+stargazer(model_1, type="text", style = "qje",
           omit        = "age",
           omit.labels = "Ommited Age Dummies")
 model1coef<-model_1$coefficients
 agedummies <- model1coef[(2:61)]
 model.data1 <-data.frame(agedummies)
-stargazer(model.data1, type="html", style="qje",
+stargazer(model.data1, type="text", style="qje",
           title            = "Summary Age Dummies",
           summary.stat = c("n", "min","max","mean", "sd"))
 
@@ -111,24 +111,7 @@ names(gender_label) = c(0, 1)
 
 ```
 
-<!-- ##(e) -->
 
-<!-- ```{r} -->
-
-<!-- model_2=lm(log_dailywages~age+female+female*age,data=dataset) -->
-<!-- stargazer(model_2, type="text", style = "qje", -->
-<!--           omit = "age", -->
-<!--           omit.labels = "Omitted Age variables ") -->
-<!-- model2coef<-model_2$coefficients -->
-<!-- agedummies <- model2coef[(2:61)] -->
-<!-- age.female <-model2coef[(63:122)] -->
-<!-- model.data2 <-data.frame(agedummies, age.female) -->
-
-<!-- stargazer(model.data2, type="text", style = "qje", -->
-<!--           title            = "Summary Age Dummies", -->
-<!--           summary.stat = c("n", "min","max","mean", "sd")) -->
-
-<!-- ``` -->
 
 ## (e) Add the squared age variable
 As we can see the decreasing positive correlation of age and wage, I add the squared term of age into the regression and the cofficients are significant.

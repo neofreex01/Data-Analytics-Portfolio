@@ -62,44 +62,48 @@ With the wage vs age distribution, I use a regression to obtain an expectation w
 ```r
 dataset$age =as.factor(dataset$age)
 model_1=lm(data = dataset, log_dailywages~age)
-stargazer(model_1, type="html", style = "qje",
+stargazer(model_1, type="text", style = "qje",
           omit        = "age",
           omit.labels = "Ommited Age Dummies")
 ```
 
 ```
 ## 
-## <table style="text-align:center"><tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td>log_dailywages</td></tr>
-## <tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Constant</td><td>4.347<sup>***</sup></td></tr>
-## <tr><td style="text-align:left"></td><td>(0.012)</td></tr>
-## <tr><td style="text-align:left"></td><td></td></tr>
-## <tr><td style="text-align:left">Ommited Age Dummies</td><td>Yes</td></tr>
-## <tr><td style="text-align:left"><em>N</em></td><td>760,909</td></tr>
-## <tr><td style="text-align:left">R<sup>2</sup></td><td>0.065</td></tr>
-## <tr><td style="text-align:left">Adjusted R<sup>2</sup></td><td>0.065</td></tr>
-## <tr><td style="text-align:left">Residual Std. Error</td><td>0.396 (df = 760848)</td></tr>
-## <tr><td style="text-align:left">F Statistic</td><td>886.966<sup>***</sup> (df = 60; 760848)</td></tr>
-## <tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"><em>Notes:</em></td><td style="text-align:right"><sup>***</sup>Significant at the 1 percent level.</td></tr>
-## <tr><td style="text-align:left"></td><td style="text-align:right"><sup>**</sup>Significant at the 5 percent level.</td></tr>
-## <tr><td style="text-align:left"></td><td style="text-align:right"><sup>*</sup>Significant at the 10 percent level.</td></tr>
-## </table>
+## ==========================================================
+##                                 log_dailywages            
+## ----------------------------------------------------------
+## Constant                           4.347***               
+##                                    (0.012)                
+##                                                           
+## Ommited Age Dummies                  Yes                  
+## N                                  760,909                
+## R2                                  0.065                 
+## Adjusted R2                         0.065                 
+## Residual Std. Error          0.396 (df = 760848)          
+## F Statistic              886.966*** (df = 60; 760848)     
+## ==========================================================
+## Notes:              ***Significant at the 1 percent level.
+##                      **Significant at the 5 percent level.
+##                      *Significant at the 10 percent level.
 ```
 
 ```r
 model1coef<-model_1$coefficients
 agedummies <- model1coef[(2:61)]
 model.data1 <-data.frame(agedummies)
-stargazer(model.data1, type="html", style="qje",
+stargazer(model.data1, type="text", style="qje",
           title            = "Summary Age Dummies",
           summary.stat = c("n", "min","max","mean", "sd"))
 ```
 
 ```
 ## 
-## <table style="text-align:center"><caption><strong>Summary Age Dummies</strong></caption>
-## <tr><td colspan="6" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Statistic</td><td>N</td><td>Min</td><td>Max</td><td>Mean</td><td>St. Dev.</td></tr>
-## <tr><td colspan="6" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">agedummies</td><td>60</td><td>0.020</td><td>0.520</td><td>0.377</td><td>0.123</td></tr>
-## <tr><td colspan="6" style="border-bottom: 1px solid black"></td></tr></table>
+## Summary Age Dummies
+## ----------------------------------------
+## Statistic  N   Min   Max  Mean  St. Dev.
+## ========================================
+## agedummies 60 0.020 0.520 0.377  0.123  
+## ========================================
 ```
 
 ## (d) Male and Female wage distribution
@@ -131,24 +135,7 @@ names(gender_label) = c(0, 1)
 
 <img src="./figure/figureunnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
-<!-- ##(e) -->
 
-<!-- ```{r} -->
-
-<!-- model_2=lm(log_dailywages~age+female+female*age,data=dataset) -->
-<!-- stargazer(model_2, type="text", style = "qje", -->
-<!--           omit = "age", -->
-<!--           omit.labels = "Omitted Age variables ") -->
-<!-- model2coef<-model_2$coefficients -->
-<!-- agedummies <- model2coef[(2:61)] -->
-<!-- age.female <-model2coef[(63:122)] -->
-<!-- model.data2 <-data.frame(agedummies, age.female) -->
-
-<!-- stargazer(model.data2, type="text", style = "qje", -->
-<!--           title            = "Summary Age Dummies", -->
-<!--           summary.stat = c("n", "min","max","mean", "sd")) -->
-
-<!-- ``` -->
 
 ## (e) Add the squared age variable
 As we can see the decreasing positive correlation of age and wage, I add the squared term of age into the regression and the cofficients are significant.
