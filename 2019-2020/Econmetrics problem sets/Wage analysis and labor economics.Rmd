@@ -15,22 +15,19 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE,
                       fig.path = "./figure/figure")
 ```
 
-# Question 1
-
+# 1. Wage overview in Italia
+This question aims to answer the relationship between wage and age in Italy. Moreover, it also would like to discover if there is any difference of the relationship between male and female.
 ```{r warning = FALSE, echo=FALSE}
 library(lubridate)
 library(stringr)
 library(tidyverse)
 library(data.table)
-# library(lmtest)
 library(stargazer)
-# library(skimr)
 library(moderndive)
-# library(bbplot)
 library(haven)
 library(mfx)
 ```
-Import datasets from the console
+First, we need to import datasets from the console
 ```{r warning = FALSE}
  ps1 = read_csv("./dataset/ps1.csv", 
                 col_types = cols(log_dailywages = col_number()))
@@ -39,15 +36,19 @@ Import datasets from the console
 
 ## (a) Data process
 
-```{r}
+```{r  mesage=FALSE, warning=FALSE}
 dataset=ps1 %>%
   mutate(female = if_else(sex=="F",1,0),age=2001-birth)
 ```
 
 ## (b) Wage distribution against age
-```{r}
+
+With the distribution, we can find the wage increases as age becomes larger. However, we can also find a decreasing marginal effect of age.
+
+```{r fig.align="center"}
 wage_distribute= dataset %>%
   group_by(age) %>%
+  # Use the raw data of wage to plot
   summarise(wage_avg=mean(exp(log_dailywages))) %>%
   ggplot(aes(x=age,y=wage_avg))+
   geom_bar(stat="identity",fill="red")+
@@ -62,66 +63,75 @@ wage_distribute
 
 ```
 
-##(c) Regression
+## (c) Regression
 
-With the age profile, I use a regression to obtain an expectation wage condition on age, i.e. uses age as a predictor to guess the expectation age.
+With the wage vs age distribution, I use a regression to obtain an expectation wage condition on age, i.e. uses age as a predictor to estimate the expectation value of wage. Then, I look into the summary statistics of the coefficients of each age. As we can see, the effect of the age is different from 0.02 to 0.57 and the avarage effect of the age is 0.37 (log(wage)).
 
 ```{r}
 dataset$age =as.factor(dataset$age)
 model_1=lm(data = dataset, log_dailywages~age)
-stargazer(model_1, type="text",style="qje", omit = "age", 
-          omit.labels = "Omit Age variables "
-          )
+stargazer(model_1, type="html", style = "qje",
+          omit        = "age",
+          omit.labels = "Ommited Age Dummies")
+model1coef<-model_1$coefficients
+agedummies <- model1coef[(2:61)]
+model.data1 <-data.frame(agedummies)
+stargazer(model.data1, type="html", style="qje",
+          title            = "Summary Age Dummies",
+          summary.stat = c("n", "min","max","mean", "sd"))
 
 ```
 
-##(d) Male and Female wage distribution
-
-```{r}
-wage_male_distribute = dataset %>%
-  filter(female=="0") %>%
-  group_by(age) %>%
+## (d) Male and Female wage distribution
+Now, I look into the wage distributioni of male and female separately, then we can find the trends are somehow different, which means the relationships between age and wage are different within these two groups.
+```{r fig.align="center"}
+gender_label = c('male', 'female')
+names(gender_label) = c(0, 1)
+# wage_male_distribute = 
+  dataset %>%
+  mutate(female = as.factor(female)) %>%
+  # filter(female=="0") %>%
+  group_by(age, female) %>%
   summarise(wage_avg=mean(exp(log_dailywages))) %>%
-  ggplot(aes(x=as.integer(as.character(age)),y=wage_avg))+
-  geom_bar(stat="identity",fill="blue")+
-  labs(title="Wage of male individuals across the age")+
-  labs(x="Age", y="Wage(in average)")+
-  guides(colour=guide_legend(title.theme=NULL))+
+  ungroup() %>%
+  ggplot(aes(x=as.integer(as.character(age)),y=wage_avg, fill = female))+
+  geom_bar(stat="identity")+
+  labs(title="Wage of individuals across the age grouped by gender")+
+  labs(x="Age", y="Wage(in average)", fill = 'gender')+
   theme(legend.position = "bottom") + 
-  theme_bw()
+  facet_grid(~ female , labeller = labeller(female = gender_label)) + 
+  scale_fill_manual(values = c('#70c1b3','#f25f5c'))+
+  theme_bw() +
+  theme(strip.background = element_rect(
+     color="black", fill="transparent", size=1.5, linetype="solid"
+     ))
 
-wage_female_distribute= dataset %>%
-  filter(female=="1") %>%
-  group_by(age) %>%
-  summarise(wage_avg=mean(exp(log_dailywages))) %>%
-  ggplot(aes(x=as.integer(as.character(age)),y=wage_avg))+
-  geom_bar(stat="identity",fill="red")+
-  labs(title="Wage of female individuals across the age")+
-  labs(x="Age", y="Wage(in average)")+
-  guides(colour=guide_legend(title.theme=NULL))+
-  theme(legend.position = "bottom") + 
-  theme_bw()
 
-wage_female_distribute
-
-wage_male_distribute
 
 ```
 
-##(e)
+<!-- ##(e) -->
 
-```{r}
+<!-- ```{r} -->
 
-model_2=lm(log_dailywages~age+female+female*age,data=dataset)
-stargazer(model_2, type="text", style = "qje",
-          omit = "age",
-          omit.labels = "Omitted Age variables ")
+<!-- model_2=lm(log_dailywages~age+female+female*age,data=dataset) -->
+<!-- stargazer(model_2, type="text", style = "qje", -->
+<!--           omit = "age", -->
+<!--           omit.labels = "Omitted Age variables ") -->
+<!-- model2coef<-model_2$coefficients -->
+<!-- agedummies <- model2coef[(2:61)] -->
+<!-- age.female <-model2coef[(63:122)] -->
+<!-- model.data2 <-data.frame(agedummies, age.female) -->
 
-```
+<!-- stargazer(model.data2, type="text", style = "qje", -->
+<!--           title            = "Summary Age Dummies", -->
+<!--           summary.stat = c("n", "min","max","mean", "sd")) -->
 
-##(f)
+<!-- ``` -->
 
-```{r}
+## (e) Add the squared age variable
+As we can see the decreasing positive correlation of age and wage, I add the squared term of age into the regression and the cofficients are significant.
+```{r fig.align="center"}
 
 dataset$age = as.numeric(as.character(dataset$age))
 model_3=lm(log_dailywages~female+age+I(age^2),data=dataset)
@@ -131,11 +141,11 @@ stargazer(model_3,type="text", style="qje",
 ```
 
 
-##(g)
+##(f) Compare the prediction and true value of different gender
 
-The prediction is very similar to the expectation value. However, when age increases, we can find that male and femael start to have diverse. Perhaps, we could also use an interaction term between female and $age^{2}$.
+The prediction is very similar to the expectation value. However, when age increases, we can find that the conditional mean of male and femael start to diverse. Perhaps, we could also use an interaction term between female and the squared term of the age variable.
 
-```{r}
+```{r, }
 df = dataset %>% 
   group_by(age,female) %>%
   summarise(avg_wage=mean(log_dailywages))
@@ -163,18 +173,25 @@ ggplot(prediction,aes(x=age,shape=as.factor(female)))+
 
 ```
 
-# 2. Replication of Olken 2017
+# 2. Replication of Olken (2007)
 
-## (a)
-He might violate the assumption of SUTVA (Stable Unit Treatment Value Assumption)
+Brief introduction: This paper tries to investigate if the treatments (audtion, invitation and comment) are effective to decrease corruption in Indonesia. The author used a randomized field experiment to test the treatment effect of each treatment. There are 6 (2*3) controlled and treated groups (control/audit vs control/invite/comment) in the research. 
+
+## (a) The assumption necessary to estimate the treatment effect.
+One of the most important assumption would be  SUTVA (Stable Unit Treatment Value Assumption), which means no spillover effect among controlled groups and treated groups. For example, for villages assigned to control group, they might hear the auditors went to other vaillages and therefore be aware of that and reduce the amount/probabilty of corruption. Olken use the distance to the nearest audit village to test if there is any spillover effect in the experiment, yet he suggests no impact of spillover effect.
 ```{r}
+# Import the data
 Olken <- read_dta("./dataset/Olken.dta")
+# Tramsform the data
+Olken=Olken %>%
+  mutate(auditstratnum=factor(auditstratnum))
 ```
 
 ## (b)
+
+
 ```{r}
-Olken=Olken %>%
-  mutate(auditstratnum=factor(auditstratnum)) 
+ 
 model1<-lm(lndiffeall3mat ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
 model2<-lm(lndiffeburuh ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
 model3<-lm(lndiffeall4 ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
@@ -229,7 +246,7 @@ Olken=Olken %>%
 
 ## (e) 
 
-```{r, results='asis', mesage=FALSE, warning=FALSE}
+```{r mesage=FALSE, warning=FALSE}
 
 
 model1 <- lm(true_realcorruption ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)

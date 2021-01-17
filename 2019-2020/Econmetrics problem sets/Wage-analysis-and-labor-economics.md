@@ -12,10 +12,10 @@ editor_options:
 
 
 
-# Question 1
+# 1.
+This question aims to answer the relationship between wage and age in Italy. Moreover, it also would like to discover if there is any difference of the relationship between male and female.
 
-
-Import datasets from the console
+First, we need to import datasets from the console
 
 ```r
  ps1 = read_csv("./dataset/ps1.csv", 
@@ -32,9 +32,13 @@ dataset=ps1 %>%
 
 ## (b) Wage distribution against age
 
+With the distribution, we can find the wage increases as age becomes larger. However, we can also find a decreasing marginal effect of age.
+
+
 ```r
 wage_distribute= dataset %>%
   group_by(age) %>%
+  # Use the raw data of wage to plot
   summarise(wage_avg=mean(exp(log_dailywages))) %>%
   ggplot(aes(x=age,y=wage_avg))+
   geom_bar(stat="identity",fill="red")+
@@ -48,115 +52,105 @@ wage_distribute= dataset %>%
 wage_distribute
 ```
 
-![](./figure/figureunnamed-chunk-5-1.png)<!-- -->
+<img src="./figure/figureunnamed-chunk-5-1.png" style="display: block; margin: auto;" />
 
-##(c) Regression
+## (c) Regression
 
-With the age profile, I use a regression to obtain an expectation wage condition on age, i.e. uses age as a predictor to guess the expectation age.
+With the wage vs age distribution, I use a regression to obtain an expectation wage condition on age, i.e. uses age as a predictor to estimate the expectation value of wage. Then, I look into the summary statistics of the coefficients of each age. As we can see, the effect of the age is different from 0.02 to 0.57 and the avarage effect of the age is 0.37 (log(wage)).
 
 
 ```r
 dataset$age =as.factor(dataset$age)
 model_1=lm(data = dataset, log_dailywages~age)
-stargazer(model_1, type="text",style="qje", omit = "age", 
-          omit.labels = "Omit Age variables "
-          )
+stargazer(model_1, type="html", style = "qje",
+          omit        = "age",
+          omit.labels = "Ommited Age Dummies")
 ```
 
 ```
 ## 
-## ==========================================================
-##                                 log_dailywages            
-## ----------------------------------------------------------
-## Constant                           4.347***               
-##                                    (0.012)                
-##                                                           
-## Omit Age variables                   Yes                  
-## N                                  760,909                
-## R2                                  0.065                 
-## Adjusted R2                         0.065                 
-## Residual Std. Error          0.396 (df = 760848)          
-## F Statistic              886.966*** (df = 60; 760848)     
-## ==========================================================
-## Notes:              ***Significant at the 1 percent level.
-##                      **Significant at the 5 percent level.
-##                      *Significant at the 10 percent level.
+## <table style="text-align:center"><tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td>log_dailywages</td></tr>
+## <tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Constant</td><td>4.347<sup>***</sup></td></tr>
+## <tr><td style="text-align:left"></td><td>(0.012)</td></tr>
+## <tr><td style="text-align:left"></td><td></td></tr>
+## <tr><td style="text-align:left">Ommited Age Dummies</td><td>Yes</td></tr>
+## <tr><td style="text-align:left"><em>N</em></td><td>760,909</td></tr>
+## <tr><td style="text-align:left">R<sup>2</sup></td><td>0.065</td></tr>
+## <tr><td style="text-align:left">Adjusted R<sup>2</sup></td><td>0.065</td></tr>
+## <tr><td style="text-align:left">Residual Std. Error</td><td>0.396 (df = 760848)</td></tr>
+## <tr><td style="text-align:left">F Statistic</td><td>886.966<sup>***</sup> (df = 60; 760848)</td></tr>
+## <tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"><em>Notes:</em></td><td style="text-align:right"><sup>***</sup>Significant at the 1 percent level.</td></tr>
+## <tr><td style="text-align:left"></td><td style="text-align:right"><sup>**</sup>Significant at the 5 percent level.</td></tr>
+## <tr><td style="text-align:left"></td><td style="text-align:right"><sup>*</sup>Significant at the 10 percent level.</td></tr>
+## </table>
 ```
 
-##(d) Male and Female wage distribution
-
-
 ```r
-wage_male_distribute = dataset %>%
-  filter(female=="0") %>%
-  group_by(age) %>%
-  summarise(wage_avg=mean(exp(log_dailywages))) %>%
-  ggplot(aes(x=as.integer(as.character(age)),y=wage_avg))+
-  geom_bar(stat="identity",fill="blue")+
-  labs(title="Wage of male individuals across the age")+
-  labs(x="Age", y="Wage(in average)")+
-  guides(colour=guide_legend(title.theme=NULL))+
-  theme(legend.position = "bottom") + 
-  theme_bw()
-
-wage_female_distribute= dataset %>%
-  filter(female=="1") %>%
-  group_by(age) %>%
-  summarise(wage_avg=mean(exp(log_dailywages))) %>%
-  ggplot(aes(x=as.integer(as.character(age)),y=wage_avg))+
-  geom_bar(stat="identity",fill="red")+
-  labs(title="Wage of female individuals across the age")+
-  labs(x="Age", y="Wage(in average)")+
-  guides(colour=guide_legend(title.theme=NULL))+
-  theme(legend.position = "bottom") + 
-  theme_bw()
-
-wage_female_distribute
-```
-
-![](./figure/figureunnamed-chunk-7-1.png)<!-- -->
-
-```r
-wage_male_distribute
-```
-
-![](./figure/figureunnamed-chunk-7-2.png)<!-- -->
-
-##(e)
-
-
-```r
-model_2=lm(log_dailywages~age+female+female*age,data=dataset)
-stargazer(model_2, type="text", style = "qje",
-          omit = "age",
-          omit.labels = "Omitted Age variables ")
+model1coef<-model_1$coefficients
+agedummies <- model1coef[(2:61)]
+model.data1 <-data.frame(agedummies)
+stargazer(model.data1, type="html", style="qje",
+          title            = "Summary Age Dummies",
+          summary.stat = c("n", "min","max","mean", "sd"))
 ```
 
 ```
 ## 
-## ============================================================
-##                                   log_dailywages            
-## ------------------------------------------------------------
-## female                              -0.131***               
-##                                      (0.024)                
-##                                                             
-## Constant                             4.403***               
-##                                      (0.015)                
-##                                                             
-## Omitted Age variables                  Yes                  
-## N                                    760,909                
-## R2                                    0.184                 
-## Adjusted R2                           0.184                 
-## Residual Std. Error            0.370 (df = 760787)          
-## F Statistic              1,415.787*** (df = 121; 760787)    
-## ============================================================
-## Notes:                ***Significant at the 1 percent level.
-##                        **Significant at the 5 percent level.
-##                        *Significant at the 10 percent level.
+## <table style="text-align:center"><caption><strong>Summary Age Dummies</strong></caption>
+## <tr><td colspan="6" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Statistic</td><td>N</td><td>Min</td><td>Max</td><td>Mean</td><td>St. Dev.</td></tr>
+## <tr><td colspan="6" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">agedummies</td><td>60</td><td>0.020</td><td>0.520</td><td>0.377</td><td>0.123</td></tr>
+## <tr><td colspan="6" style="border-bottom: 1px solid black"></td></tr></table>
 ```
 
-##(f)
+## (d) Male and Female wage distribution
+Now, I look into the wage distributioni of male and female separately, then we can find the trends are somehow different, which means the relationships between age and wage are different within these two groups.
 
+```r
+gender_label = c('male', 'female')
+names(gender_label) = c(0, 1)
+# wage_male_distribute = 
+  dataset %>%
+  mutate(female = as.factor(female)) %>%
+  # filter(female=="0") %>%
+  group_by(age, female) %>%
+  summarise(wage_avg=mean(exp(log_dailywages))) %>%
+  ungroup() %>%
+  ggplot(aes(x=as.integer(as.character(age)),y=wage_avg, fill = female))+
+  geom_bar(stat="identity")+
+  labs(title="Wage of individuals across the age grouped by gender")+
+  labs(x="Age", y="Wage(in average)", fill = 'gender')+
+  theme(legend.position = "bottom") + 
+  facet_grid(~ female , labeller = labeller(female = gender_label)) + 
+  scale_fill_manual(values = c('#70c1b3','#f25f5c'))+
+  theme_bw() +
+  theme(strip.background = element_rect(
+     color="black", fill="transparent", size=1.5, linetype="solid"
+     ))
+```
+
+<img src="./figure/figureunnamed-chunk-7-1.png" style="display: block; margin: auto;" />
+
+<!-- ##(e) -->
+
+<!-- ```{r} -->
+
+<!-- model_2=lm(log_dailywages~age+female+female*age,data=dataset) -->
+<!-- stargazer(model_2, type="text", style = "qje", -->
+<!--           omit = "age", -->
+<!--           omit.labels = "Omitted Age variables ") -->
+<!-- model2coef<-model_2$coefficients -->
+<!-- agedummies <- model2coef[(2:61)] -->
+<!-- age.female <-model2coef[(63:122)] -->
+<!-- model.data2 <-data.frame(agedummies, age.female) -->
+
+<!-- stargazer(model.data2, type="text", style = "qje", -->
+<!--           title            = "Summary Age Dummies", -->
+<!--           summary.stat = c("n", "min","max","mean", "sd")) -->
+
+<!-- ``` -->
+
+## (e) Add the squared age variable
+As we can see the decreasing positive correlation of age and wage, I add the squared term of age into the regression and the cofficients are significant.
 
 ```r
 dataset$age = as.numeric(as.character(dataset$age))
@@ -195,9 +189,9 @@ stargazer(model_3,type="text", style="qje",
 ```
 
 
-##(g)
+##(f) Compare the prediction and true value of different gender
 
-The prediction is very similar to the expectation value. However, when age increases, we can find that male and femael start to have diverse. Perhaps, we could also use an interaction term between female and $age^{2}$.
+The prediction is very similar to the expectation value. However, when age increases, we can find that the conditional mean of male and femael start to diverse. Perhaps, we could also use an interaction term between female and the squared term of the age variable.
 
 
 ```r
@@ -227,9 +221,11 @@ ggplot(prediction,aes(x=age,shape=as.factor(female)))+
   theme_bw()
 ```
 
-![](./figure/figureunnamed-chunk-10-1.png)<!-- -->
+![](./figure/figureunnamed-chunk-9-1.png)<!-- -->
 
-# 2. Replication of Olken 2017
+# 2. Replication of Olken (2007)
+
+Brief introduction: This paper try to investigate the methods to decrease corruption in 
 
 ## (a)
 He might violate the assumption of SUTVA (Stable Unit Treatment Value Assumption)
