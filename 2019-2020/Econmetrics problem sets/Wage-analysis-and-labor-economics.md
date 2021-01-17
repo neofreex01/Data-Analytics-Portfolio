@@ -12,7 +12,7 @@ editor_options:
 
 
 
-# 1.
+# 1. Wage overview in Italia
 This question aims to answer the relationship between wage and age in Italy. Moreover, it also would like to discover if there is any difference of the relationship between male and female.
 
 First, we need to import datasets from the console
@@ -121,7 +121,8 @@ names(gender_label) = c(0, 1)
   labs(x="Age", y="Wage(in average)", fill = 'gender')+
   theme(legend.position = "bottom") + 
   facet_grid(~ female , labeller = labeller(female = gender_label)) + 
-  scale_fill_manual(values = c('#70c1b3','#f25f5c'))+
+  scale_fill_manual(labels=c("male","female"), 
+                    values = c('#70c1b3','#f25f5c'))+
   theme_bw() +
   theme(strip.background = element_rect(
      color="black", fill="transparent", size=1.5, linetype="solid"
@@ -210,7 +211,8 @@ ggplot(prediction,aes(x=age,shape=as.factor(female)))+
   geom_smooth(aes(y=wage_hat,color=as.factor(female)))+
   geom_point(aes(y=wage_hat,color=as.factor(female)))+
   scale_shape_discrete(labels=c("male","female"))+
-  scale_color_discrete(labels=c("male","female"))+
+  scale_color_manual(labels=c("male","female"), 
+                     values = c('#70c1b3','#f25f5c')) +
   theme(legend.title=element_blank())+
   labs(title="Prediction vs Conditioinal Mean")+
   labs(x="Age",y="wage(daily)")+
@@ -225,64 +227,22 @@ ggplot(prediction,aes(x=age,shape=as.factor(female)))+
 
 # 2. Replication of Olken (2007)
 
-Brief introduction: This paper try to investigate the methods to decrease corruption in 
+Brief introduction: This paper tries to investigate if the treatments (audtion, invitation and comment) are effective to decrease corruption in Indonesia. The author used a randomized field experiment to test the treatment effect of each treatment. There are 6 (2*3) groups recieving various treatments  (control/audit X control/invite/comment) in the research. Also, the author hired a team to evaluate the expense of each items in the project, and, then, compared it with the expense from the projects' statement as the dependent variable (i.e. missing expense).
 
-## (a)
-He might violate the assumption of SUTVA (Stable Unit Treatment Value Assumption)
+## (a) The assumption necessary to estimate the treatment effect
+One of the most important assumption would be  SUTVA (Stable Unit Treatment Value Assumption), which means no spillover effect among controlled groups and treated groups. For example, for villages assigned to control group, they might hear the auditors went to other vaillages and therefore be aware of that and reduce the amount/probabilty of corruption. Olken use the distance to the nearest audit village to test if there is any spillover effect in the experiment, yet he suggests no impact of spillover effect.
 
 ```r
+# Import the data
 Olken <- read_dta("./dataset/Olken.dta")
+# Tramsform the data
+Olken=Olken %>%
+  mutate(auditstratnum=factor(auditstratnum))
 ```
 
 ## (b)
 
-```r
-Olken=Olken %>%
-  mutate(auditstratnum=factor(auditstratnum)) 
-model1<-lm(lndiffeall3mat ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-model2<-lm(lndiffeburuh ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-model3<-lm(lndiffeall4 ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-model4<-lm(lndiffeall4mainancil ~audit_rand+ undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-stargazer(model1, model2, model3, model4, type="text",
-          omit        = "auditstratnum",
-          omit.labels = "Ommited Stratum Fix Effects")
-```
-
-```
-## 
-## ===========================================================================================================================
-##                                                                   Dependent variable:                                      
-##                             -----------------------------------------------------------------------------------------------
-##                                 lndiffeall3mat           lndiffeburuh             lndiffeall4        lndiffeall4mainancil  
-##                                       (1)                     (2)                     (3)                     (4)          
-## ---------------------------------------------------------------------------------------------------------------------------
-## audit_rand                          -0.034                  -0.041                  -0.048                 -0.090***       
-##                                     (0.033)                 (0.079)                 (0.029)                 (0.029)        
-##                                                                                                                            
-## undfpm_rand                          0.014                  -0.159*                 -0.020                  -0.031         
-##                                     (0.038)                 (0.090)                 (0.034)                 (0.034)        
-##                                                                                                                            
-## fpm_rand                            -0.028                   0.039                   0.002                   0.002         
-##                                     (0.038)                 (0.090)                 (0.033)                 (0.033)        
-##                                                                                                                            
-## Constant                             0.150                   0.032                   0.166                   0.133         
-##                                     (0.166)                 (0.429)                 (0.147)                 (0.158)        
-##                                                                                                                            
-## ---------------------------------------------------------------------------------------------------------------------------
-## Ommited Stratum Fix Effects           Yes                     Yes                     Yes                     Yes          
-## ---------------------------------------------------------------------------------------------------------------------------
-## Observations                          477                     426                     477                     538          
-## R2                                   0.375                   0.333                   0.351                   0.272         
-## Adjusted R2                          0.299                   0.242                   0.271                   0.194         
-## Residual Std. Error            0.331 (df = 424)        0.741 (df = 374)        0.293 (df = 424)        0.314 (df = 485)    
-## F Statistic                 4.898*** (df = 52; 424) 3.662*** (df = 51; 374) 4.411*** (df = 52; 424) 3.483*** (df = 52; 485)
-## ===========================================================================================================================
-## Note:                                                                                           *p<0.1; **p<0.05; ***p<0.01
-```
-
-## (c)
-
-Table 2 shows the relationship between village and treatments. We use a probit model where the dependent variables are treatment dummies. We can see that village characteristics do not siginifcantly affect the dummies and the coefficient is very small.
+These three table shows the relationship between village characteristic and treatments (audit, intivation and comment respectively). The author uses a probit model where the dependent variables are treatment dummies. The standard error is clustered at subdistrict level, which is consists of several villages. The reason for cluster is the villages in the same subdistrict are easily to be affected by the change in part of them. From the table, we can know most of the village characteristics do not siginifcantly affect the dummies and the coefficient is very small. On the other hand, we can use the t-test among groups to test if there is significant difference among groups. This step is important because it can help to check how the balance of the treatment assignment after the randomization.
 
 
 ```r
@@ -360,7 +320,66 @@ stargazer(model1$mfxest, model2$mfxest, model3$mfxest, type = 'text', header = F
 ```
 
 
+## (c) The effect of audit treatment
+
+The table shows the treatment effect of audit treatment in different items and projects. I control other treatment and use the auditstratnum fixed effect. As the table shows, the coefficient of is negative in average, which means the aomunt of corruption of the auditted villages would be less, compared to the control village. However, only the effect is only significant when we include all the expense at once.
+
+
+
+```r
+model1 <- lm(lndiffeall3mat ~ audit_rand + undfpm_rand + fpm_rand + auditstratnum, data=Olken)
+ 
+model2<-lm(lndiffeburuh ~ audit_rand + undfpm_rand + fpm_rand + auditstratnum , data=Olken)
+
+model3<-lm(lndiffeall4 ~ audit_rand + undfpm_rand + fpm_rand + auditstratnum, data=Olken)
+
+model4<-lm(lndiffeall4mainancil ~ audit_rand + undfpm_rand + fpm_rand
+           , data=Olken)
+
+stargazer(model1, model2, model3, model4, type="text",
+          omit        = "auditstratnum",
+          dep.var.labels = c('Missing $ in material', 'Missing $ in labor', 
+                             'Missing $ in major item', 'Missing $ in all projects'),
+          omit.labels = "Ommited Stratum Fix Effects")
+```
+
+```
+## 
+## ===========================================================================================================================
+##                                                                   Dependent variable:                                      
+##                             -----------------------------------------------------------------------------------------------
+##                               Missing in material      Missing in labor      Missing in major item  Missing in all projects
+##                                       (1)                     (2)                     (3)                     (4)          
+## ---------------------------------------------------------------------------------------------------------------------------
+## audit_rand                          -0.034                  -0.041                  -0.048                 -0.091***       
+##                                     (0.033)                 (0.079)                 (0.029)                 (0.030)        
+##                                                                                                                            
+## undfpm_rand                          0.014                  -0.159*                 -0.020                  -0.030         
+##                                     (0.038)                 (0.090)                 (0.034)                 (0.037)        
+##                                                                                                                            
+## fpm_rand                            -0.028                   0.039                   0.002                   0.003         
+##                                     (0.038)                 (0.090)                 (0.033)                 (0.037)        
+##                                                                                                                            
+## Constant                             0.150                   0.032                   0.166                 0.310***        
+##                                     (0.166)                 (0.429)                 (0.147)                 (0.029)        
+##                                                                                                                            
+## ---------------------------------------------------------------------------------------------------------------------------
+## Ommited Stratum Fix Effects           Yes                     Yes                     Yes                     No           
+## ---------------------------------------------------------------------------------------------------------------------------
+## Observations                          477                     426                     477                     538          
+## R2                                   0.375                   0.333                   0.351                   0.019         
+## Adjusted R2                          0.299                   0.242                   0.271                   0.013         
+## Residual Std. Error            0.331 (df = 424)        0.741 (df = 374)        0.293 (df = 424)        0.348 (df = 534)    
+## F Statistic                 4.898*** (df = 52; 424) 3.662*** (df = 51; 374) 4.411*** (df = 52; 424)  3.373** (df = 3; 534) 
+## ===========================================================================================================================
+## Note:                                                                                           *p<0.1; **p<0.05; ***p<0.01
+```
+
+
 ## (d)
+
+Another interesing finding from Olken is that corruption still happend for villages certainly auditted. He thinks it's possible because of the law in Indonesia that managers is unlikely to be punished for corruption the amount of which is under USD 1,200. To test the idea, we create a new variable.
+
 
 
 ```r
@@ -372,42 +391,52 @@ Olken=Olken %>%
 
 ## (e) 
 
+We can see the coefficient is far more larger and significant.
+
 
 ```r
 model1 <- lm(true_realcorruption ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-stargazer(model1, type='html',
+stargazer(model1, type='text',
           omit = "auditstratnum",
           omit.labels = "Ommited Stratum Fix Effects")
 ```
 
-
-<table style="text-align:center"><tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td><em>Dependent variable:</em></td></tr>
-<tr><td></td><td colspan="1" style="border-bottom: 1px solid black"></td></tr>
-<tr><td style="text-align:left"></td><td>true_realcorruption</td></tr>
-<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">audit_rand</td><td>-599.750<sup>**</sup></td></tr>
-<tr><td style="text-align:left"></td><td>(250.137)</td></tr>
-<tr><td style="text-align:left"></td><td></td></tr>
-<tr><td style="text-align:left">undfpm_rand</td><td>-20.206</td></tr>
-<tr><td style="text-align:left"></td><td>(291.316)</td></tr>
-<tr><td style="text-align:left"></td><td></td></tr>
-<tr><td style="text-align:left">fpm_rand</td><td>-184.410</td></tr>
-<tr><td style="text-align:left"></td><td>(285.954)</td></tr>
-<tr><td style="text-align:left"></td><td></td></tr>
-<tr><td style="text-align:left">Constant</td><td>348.802</td></tr>
-<tr><td style="text-align:left"></td><td>(1,350.394)</td></tr>
-<tr><td style="text-align:left"></td><td></td></tr>
-<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Ommited Stratum Fix Effects</td><td>Yes</td></tr>
-<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Observations</td><td>537</td></tr>
-<tr><td style="text-align:left">R<sup>2</sup></td><td>0.256</td></tr>
-<tr><td style="text-align:left">Adjusted R<sup>2</sup></td><td>0.176</td></tr>
-<tr><td style="text-align:left">Residual Std. Error</td><td>2,689.020 (df = 484)</td></tr>
-<tr><td style="text-align:left">F Statistic</td><td>3.204<sup>***</sup> (df = 52; 484)</td></tr>
-<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"><em>Note:</em></td><td style="text-align:right"><sup>*</sup>p<0.1; <sup>**</sup>p<0.05; <sup>***</sup>p<0.01</td></tr>
-</table>
+```
+## 
+## =======================================================
+##                                 Dependent variable:    
+##                             ---------------------------
+##                                 true_realcorruption    
+## -------------------------------------------------------
+## audit_rand                          -599.750**         
+##                                      (250.137)         
+##                                                        
+## undfpm_rand                           -20.206          
+##                                      (291.316)         
+##                                                        
+## fpm_rand                             -184.410          
+##                                      (285.954)         
+##                                                        
+## Constant                              348.802          
+##                                     (1,350.394)        
+##                                                        
+## -------------------------------------------------------
+## Ommited Stratum Fix Effects             Yes            
+## -------------------------------------------------------
+## Observations                            537            
+## R2                                     0.256           
+## Adjusted R2                            0.176           
+## Residual Std. Error            2,689.020 (df = 484)    
+## F Statistic                   3.204*** (df = 52; 484)  
+## =======================================================
+## Note:                       *p<0.1; **p<0.05; ***p<0.01
+```
 
 
 
 ## (f)
+
+Also, besides the corruption amount, we can also look at the corruption probability. In this case, we can find if we considering the threshold of indonesia law, the effect of audit is more significant.
 
 
 ```r
@@ -421,37 +450,39 @@ model3<-lm(corruption_bad ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum, d
 stargazer(model1, model2, model3, 
           type="text",
           omit        = "auditstratnum",
-          omit.labels = "Ommited Stratum Fix Effects")
+          omit.labels = "Ommited Stratum Fix Effects", 
+          dep.var.labels = c('Amounts over $1200', 'Corruption = 1 (if amount > 0)', 
+                             'Corruption = 1 (if amount > 1,200)'))
 ```
 
 ```
 ## 
-## ================================================================================
-##                                               Dependent variable:               
-##                                -------------------------------------------------
-##                                true_realcorruption corruption_min corruption_bad
-##                                        (1)              (2)            (3)      
-## --------------------------------------------------------------------------------
-## audit_rand                         -599.750**         -0.077**      -0.127***   
-##                                     (250.137)         (0.036)        (0.042)    
-##                                                                                 
-## undfpm_rand                          -20.206           -0.039         -0.040    
-##                                     (291.316)         (0.042)        (0.049)    
-##                                                                                 
-## fpm_rand                            -184.410           0.047          0.013     
-##                                     (285.954)         (0.041)        (0.048)    
-##                                                                                 
-## Constant                             348.802          0.758***       0.517**    
-##                                    (1,350.394)        (0.193)        (0.227)    
-##                                                                                 
-## --------------------------------------------------------------------------------
-## Ommited Stratum Fix Effects            Yes              Yes            Yes      
-## --------------------------------------------------------------------------------
-## Observations                           537              537            537      
-## R2                                    0.256            0.231          0.231     
-## Adjusted R2                           0.176            0.148          0.149     
-## Residual Std. Error (df = 484)      2,689.020          0.384          0.452     
-## F Statistic (df = 52; 484)          3.204***          2.794***       2.801***   
-## ================================================================================
-## Note:                                                *p<0.1; **p<0.05; ***p<0.01
+## ==================================================================================================================
+##                                                                Dependent variable:                                
+##                                -----------------------------------------------------------------------------------
+##                                Amounts over 1200 Corruption = 1 (if amount > 0) Corruption = 1 (if amount > 1,200)
+##                                       (1)                     (2)                              (3)                
+## ------------------------------------------------------------------------------------------------------------------
+## audit_rand                        -599.750**                -0.077**                        -0.127***             
+##                                    (250.137)                (0.036)                          (0.042)              
+##                                                                                                                   
+## undfpm_rand                         -20.206                  -0.039                           -0.040              
+##                                    (291.316)                (0.042)                          (0.049)              
+##                                                                                                                   
+## fpm_rand                           -184.410                  0.047                            0.013               
+##                                    (285.954)                (0.041)                          (0.048)              
+##                                                                                                                   
+## Constant                            348.802                 0.758***                         0.517**              
+##                                   (1,350.394)               (0.193)                          (0.227)              
+##                                                                                                                   
+## ------------------------------------------------------------------------------------------------------------------
+## Ommited Stratum Fix Effects           Yes                     Yes                              Yes                
+## ------------------------------------------------------------------------------------------------------------------
+## Observations                          537                     537                              537                
+## R2                                   0.256                   0.231                            0.231               
+## Adjusted R2                          0.176                   0.148                            0.149               
+## Residual Std. Error (df = 484)     2,689.020                 0.384                            0.452               
+## F Statistic (df = 52; 484)         3.204***                 2.794***                         2.801***             
+## ==================================================================================================================
+## Note:                                                                                  *p<0.1; **p<0.05; ***p<0.01
 ```

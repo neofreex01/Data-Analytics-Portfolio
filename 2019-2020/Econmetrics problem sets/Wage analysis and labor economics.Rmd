@@ -100,7 +100,8 @@ names(gender_label) = c(0, 1)
   labs(x="Age", y="Wage(in average)", fill = 'gender')+
   theme(legend.position = "bottom") + 
   facet_grid(~ female , labeller = labeller(female = gender_label)) + 
-  scale_fill_manual(values = c('#70c1b3','#f25f5c'))+
+  scale_fill_manual(labels=c("male","female"), 
+                    values = c('#70c1b3','#f25f5c'))+
   theme_bw() +
   theme(strip.background = element_rect(
      color="black", fill="transparent", size=1.5, linetype="solid"
@@ -161,7 +162,8 @@ ggplot(prediction,aes(x=age,shape=as.factor(female)))+
   geom_smooth(aes(y=wage_hat,color=as.factor(female)))+
   geom_point(aes(y=wage_hat,color=as.factor(female)))+
   scale_shape_discrete(labels=c("male","female"))+
-  scale_color_discrete(labels=c("male","female"))+
+  scale_color_manual(labels=c("male","female"), 
+                     values = c('#70c1b3','#f25f5c')) +
   theme(legend.title=element_blank())+
   labs(title="Prediction vs Conditioinal Mean")+
   labs(x="Age",y="wage(daily)")+
@@ -175,9 +177,9 @@ ggplot(prediction,aes(x=age,shape=as.factor(female)))+
 
 # 2. Replication of Olken (2007)
 
-Brief introduction: This paper tries to investigate if the treatments (audtion, invitation and comment) are effective to decrease corruption in Indonesia. The author used a randomized field experiment to test the treatment effect of each treatment. There are 6 (2*3) controlled and treated groups (control/audit vs control/invite/comment) in the research. 
+Brief introduction: This paper tries to investigate if the treatments (audtion, invitation and comment) are effective to decrease corruption in Indonesia. The author used a randomized field experiment to test the treatment effect of each treatment. There are 6 (2*3) groups recieving various treatments  (control/audit X control/invite/comment) in the research. Also, the author hired a team to evaluate the expense of each items in the project, and, then, compared it with the expense from the projects' statement as the dependent variable (i.e. missing expense).
 
-## (a) The assumption necessary to estimate the treatment effect.
+## (a) The assumption necessary to estimate the treatment effect
 One of the most important assumption would be  SUTVA (Stable Unit Treatment Value Assumption), which means no spillover effect among controlled groups and treated groups. For example, for villages assigned to control group, they might hear the auditors went to other vaillages and therefore be aware of that and reduce the amount/probabilty of corruption. Olken use the distance to the nearest audit village to test if there is any spillover effect in the experiment, yet he suggests no impact of spillover effect.
 ```{r}
 # Import the data
@@ -189,22 +191,7 @@ Olken=Olken %>%
 
 ## (b)
 
-
-```{r}
- 
-model1<-lm(lndiffeall3mat ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-model2<-lm(lndiffeburuh ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-model3<-lm(lndiffeall4 ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-model4<-lm(lndiffeall4mainancil ~audit_rand+ undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-stargazer(model1, model2, model3, model4, type="text",
-          omit        = "auditstratnum",
-          omit.labels = "Ommited Stratum Fix Effects")
-
-```
-
-## (c)
-
-Table 2 shows the relationship between village and treatments. We use a probit model where the dependent variables are treatment dummies. We can see that village characteristics do not siginifcantly affect the dummies and the coefficient is very small.
+These three table shows the relationship between village characteristic and treatments (audit, intivation and comment respectively). The author uses a probit model where the dependent variables are treatment dummies. The standard error is clustered at subdistrict level, which is consists of several villages. The reason for cluster is the villages in the same subdistrict are easily to be affected by the change in part of them. From the table, we can know most of the village characteristics do not siginifcantly affect the dummies and the coefficient is very small. On the other hand, we can use the t-test among groups to test if there is significant difference among groups. This step is important because it can help to check how the balance of the treatment assignment after the randomization.
 
 ```{r}
 model1 <- probitmfx(audit_rand ~ 
@@ -234,7 +221,35 @@ stargazer(model1$mfxest, model2$mfxest, model3$mfxest, type = 'text', header = F
 ```
 
 
+## (c) The effect of audit treatment
+
+The table shows the treatment effect of audit treatment in different items and projects. I control other treatment and use the auditstratnum fixed effect. As the table shows, the coefficient of is negative in average, which means the aomunt of corruption of the auditted villages would be less, compared to the control village. However, only the effect is only significant when we include all the expense at once.
+
+
+```{r}
+ 
+model1 <- lm(lndiffeall3mat ~ audit_rand + undfpm_rand + fpm_rand + auditstratnum, data=Olken)
+ 
+model2<-lm(lndiffeburuh ~ audit_rand + undfpm_rand + fpm_rand + auditstratnum , data=Olken)
+
+model3<-lm(lndiffeall4 ~ audit_rand + undfpm_rand + fpm_rand + auditstratnum, data=Olken)
+
+model4<-lm(lndiffeall4mainancil ~ audit_rand + undfpm_rand + fpm_rand
+           , data=Olken)
+
+stargazer(model1, model2, model3, model4, type="text",
+          omit        = "auditstratnum",
+          dep.var.labels = c('Missing $ in material', 'Missing $ in labor', 
+                             'Missing $ in major item', 'Missing $ in all projects'),
+          omit.labels = "Ommited Stratum Fix Effects")
+
+```
+
+
 ## (d)
+
+Another interesing finding from Olken is that corruption still happend for villages certainly auditted. He thinks it's possible because of the law in Indonesia that managers is unlikely to be punished for corruption the amount of which is under USD 1,200. To test the idea, we create a new variable.
+
 
 ```{r}
 Olken=Olken %>%
@@ -246,11 +261,13 @@ Olken=Olken %>%
 
 ## (e) 
 
+We can see the coefficient is far more larger and significant.
+
 ```{r mesage=FALSE, warning=FALSE}
 
 
 model1 <- lm(true_realcorruption ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
-stargazer(model1, type='html',
+stargazer(model1, type='text',
           omit = "auditstratnum",
           omit.labels = "Ommited Stratum Fix Effects")
 ```
@@ -258,6 +275,8 @@ stargazer(model1, type='html',
 
 
 ## (f)
+
+Also, besides the corruption amount, we can also look at the corruption probability. In this case, we can find if we considering the threshold of indonesia law, the effect of audit is more significant.
 
 ```{r}
 
@@ -271,7 +290,9 @@ model3<-lm(corruption_bad ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum, d
 stargazer(model1, model2, model3, 
           type="text",
           omit        = "auditstratnum",
-          omit.labels = "Ommited Stratum Fix Effects")
+          omit.labels = "Ommited Stratum Fix Effects", 
+          dep.var.labels = c('Amounts over $1200', 'Corruption = 1 (if amount > 0)', 
+                             'Corruption = 1 (if amount > 1,200)'))
 
 
 
