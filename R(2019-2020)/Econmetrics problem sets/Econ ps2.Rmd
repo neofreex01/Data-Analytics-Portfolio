@@ -41,11 +41,8 @@ df1 <- read_csv("./dataset/ps_2.csv")
 
 ## (a) Creating dummies for gender and age
 
-I create a variable called sex_dummy (=1, if the observation is male).
-As for age variable, I use year - birth as age variable. 
-If we want a series of dummies for age later, I'll just use as.factor() to create them.
-
 ```{r}
+# Process the data
 df1 = df1 %>%
   mutate(sex_dummy = if_else(sex == "F",1,0),
          age = year - birth)

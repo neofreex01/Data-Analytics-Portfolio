@@ -1665,7 +1665,7 @@ summary {
 <ul>
 <li><a href="#wage-overview-in-italia">1. Wage overview in Italia</a>
 <ul>
-<li><a href="#a-data-process">(a) Data process</a></li>
+<li><a href="#a-transform-data">(a) Transform data</a></li>
 <li><a href="#b-wage-distribution-against-age">(b) Wage distribution against age</a></li>
 <li><a href="#c-regression">(c) Regression</a></li>
 <li><a href="#d-male-and-female-wage-distribution">(d) Male and Female wage distribution</a></li>
@@ -1686,17 +1686,17 @@ summary {
 <div id="wage-overview-in-italia" class="section level1">
 <h1>1. Wage overview in Italia</h1>
 <p>This question aims to answer the relationship between wage and age in Italy. Moreover, it also would like to discover if there is any difference of the relationship between male and female.</p>
-<p>First, we need to import datasets from the console</p>
-<pre class="r"><code> ps1 = read_csv(&quot;./dataset/ps1.csv&quot;, 
+<pre class="r"><code># Import data
+ ps1 = read_csv(&quot;./dataset/ps1.csv&quot;, 
                 col_types = cols(log_dailywages = col_number()))</code></pre>
-<div id="a-data-process" class="section level2">
-<h2>(a) Data process</h2>
+<div id="a-transform-data" class="section level2">
+<h2>(a) Transform data</h2>
 <pre class="r"><code>dataset=ps1 %&gt;%
   mutate(female = if_else(sex==&quot;F&quot;,1,0),age=2001-birth)</code></pre>
 </div>
 <div id="b-wage-distribution-against-age" class="section level2">
 <h2>(b) Wage distribution against age</h2>
-<p>With the distribution, we can find the wage increases as age becomes larger. However, we can also find a decreasing marginal effect of age.</p>
+<p>With the distribution, we can find the wage increases as age becomes larger. However, there is also a decreasing marginal effect of age.</p>
 <pre class="r"><code>wage_distribute= dataset %&gt;%
   group_by(age) %&gt;%
   # Use the raw data of wage to plot
@@ -1817,12 +1817,10 @@ stargazer(model_3,type=&quot;text&quot;, style=&quot;qje&quot;,
   group_by(age,female) %&gt;%
   summarise(avg_wage=mean(log_dailywages))
 
-
 prediction=get_regression_points(model_3) %&gt;%
   group_by(age,female) %&gt;%
   summarise(avg_wage=mean(log_dailywages),wage_hat=mean(log_dailywages_hat))
   
-
 ggplot(prediction,aes(x=age,shape=as.factor(female)))+
   geom_point(aes(y=avg_wage))+
   geom_smooth(aes(y=wage_hat,color=as.factor(female)))+

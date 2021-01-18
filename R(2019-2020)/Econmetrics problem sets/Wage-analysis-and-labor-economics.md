@@ -13,16 +13,19 @@ editor_options:
 
 
 # 1. Wage overview in Italia
+
 This question aims to answer the relationship between wage and age in Italy. Moreover, it also would like to discover if there is any difference of the relationship between male and female.
 
-First, we need to import datasets from the console
+
+
 
 ```r
+# Import data
  ps1 = read_csv("./dataset/ps1.csv", 
                 col_types = cols(log_dailywages = col_number()))
 ```
 
-## (a) Data process
+## (a) Transform data
 
 
 ```r
@@ -32,7 +35,7 @@ dataset=ps1 %>%
 
 ## (b) Wage distribution against age
 
-With the distribution, we can find the wage increases as age becomes larger. However, we can also find a decreasing marginal effect of age.
+With the distribution, we can find the wage increases as age becomes larger. However, there is also a decreasing marginal effect of age.
 
 
 ```r
@@ -107,7 +110,9 @@ stargazer(model.data1, type="text", style="qje",
 ```
 
 ## (d) Male and Female wage distribution
+
 Now, I look into the wage distributioni of male and female separately, then we can find the trends are somehow different, which means the relationships between age and wage are different within these two groups.
+
 
 ```r
 gender_label = c('male', 'female')
@@ -135,10 +140,10 @@ names(gender_label) = c(0, 1)
 
 <img src="./figure/figureunnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
-
-
 ## (e) Add the squared age variable
+
 As we can see the decreasing positive correlation of age and wage, I add the squared term of age into the regression and the cofficients are significant.
+
 
 ```r
 dataset$age = as.numeric(as.character(dataset$age))
@@ -176,7 +181,6 @@ stargazer(model_3,type="text", style="qje",
 ##                      *Significant at the 10 percent level.
 ```
 
-
 ##(f) Compare the prediction and true value of different gender
 
 The prediction is very similar to the expectation value. However, when age increases, we can find that the conditional mean of male and femael start to diverse. Perhaps, we could also use an interaction term between female and the squared term of the age variable.
@@ -187,12 +191,10 @@ df = dataset %>%
   group_by(age,female) %>%
   summarise(avg_wage=mean(log_dailywages))
 
-
 prediction=get_regression_points(model_3) %>%
   group_by(age,female) %>%
   summarise(avg_wage=mean(log_dailywages),wage_hat=mean(log_dailywages_hat))
   
-
 ggplot(prediction,aes(x=age,shape=as.factor(female)))+
   geom_point(aes(y=avg_wage))+
   geom_smooth(aes(y=wage_hat,color=as.factor(female)))+
@@ -310,7 +312,6 @@ stargazer(model1$mfxest, model2$mfxest, model3$mfxest, type = 'text', header = F
 ## (c) The effect of audit treatment
 
 The table shows the treatment effect of audit treatment in different items and projects. I control other treatment and use the auditstratnum fixed effect. As the table shows, the coefficient of is negative in average, which means the aomunt of corruption of the auditted villages would be less, compared to the control village. However, only the effect is only significant when we include all the expense at once.
-
 
 
 ```r

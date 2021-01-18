@@ -16,7 +16,9 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE,
 ```
 
 # 1. Wage overview in Italia
+
 This question aims to answer the relationship between wage and age in Italy. Moreover, it also would like to discover if there is any difference of the relationship between male and female.
+
 ```{r warning = FALSE, echo = FALSE}
 library(lubridate)
 library(stringr)
@@ -27,14 +29,14 @@ library(moderndive)
 library(haven)
 library(mfx)
 ```
-First, we need to import datasets from the console
+
 ```{r warning = FALSE}
+# Import data
  ps1 = read_csv("./dataset/ps1.csv", 
                 col_types = cols(log_dailywages = col_number()))
-
 ```
 
-## (a) Data process
+## (a) Transform data
 
 ```{r  mesage=FALSE, warning=FALSE}
 dataset=ps1 %>%
@@ -43,7 +45,7 @@ dataset=ps1 %>%
 
 ## (b) Wage distribution against age
 
-With the distribution, we can find the wage increases as age becomes larger. However, we can also find a decreasing marginal effect of age.
+With the distribution, we can find the wage increases as age becomes larger. However, there is also a decreasing marginal effect of age.
 
 ```{r fig.align="center"}
 wage_distribute= dataset %>%
@@ -83,7 +85,9 @@ stargazer(model.data1, type="text", style="qje",
 ```
 
 ## (d) Male and Female wage distribution
+
 Now, I look into the wage distributioni of male and female separately, then we can find the trends are somehow different, which means the relationships between age and wage are different within these two groups.
+
 ```{r fig.align="center"}
 gender_label = c('male', 'female')
 names(gender_label) = c(0, 1)
@@ -111,19 +115,17 @@ names(gender_label) = c(0, 1)
 
 ```
 
-
-
 ## (e) Add the squared age variable
-As we can see the decreasing positive correlation of age and wage, I add the squared term of age into the regression and the cofficients are significant.
-```{r fig.align="center"}
 
+As we can see the decreasing positive correlation of age and wage, I add the squared term of age into the regression and the cofficients are significant.
+
+```{r fig.align="center"}
 dataset$age = as.numeric(as.character(dataset$age))
 model_3=lm(log_dailywages~female+age+I(age^2),data=dataset)
 stargazer(model_3,type="text", style="qje",
           covariate.labels = c("female","age","$age^{2}$","intercept")
          )
 ```
-
 
 ##(f) Compare the prediction and true value of different gender
 
@@ -134,12 +136,10 @@ df = dataset %>%
   group_by(age,female) %>%
   summarise(avg_wage=mean(log_dailywages))
 
-
 prediction=get_regression_points(model_3) %>%
   group_by(age,female) %>%
   summarise(avg_wage=mean(log_dailywages),wage_hat=mean(log_dailywages_hat))
   
-
 ggplot(prediction,aes(x=age,shape=as.factor(female)))+
   geom_point(aes(y=avg_wage))+
   geom_smooth(aes(y=wage_hat,color=as.factor(female)))+
@@ -208,7 +208,6 @@ stargazer(model1$mfxest, model2$mfxest, model3$mfxest, type = 'text', header = F
 
 The table shows the treatment effect of audit treatment in different items and projects. I control other treatment and use the auditstratnum fixed effect. As the table shows, the coefficient of is negative in average, which means the aomunt of corruption of the auditted villages would be less, compared to the control village. However, only the effect is only significant when we include all the expense at once.
 
-
 ```{r}
  
 model1 <- lm(lndiffeall3mat ~ audit_rand + undfpm_rand + fpm_rand + auditstratnum, data=Olken)
@@ -276,7 +275,4 @@ stargazer(model1, model2, model3,
           omit.labels = "Ommited Stratum Fix Effects", 
           dep.var.labels = c('Amounts over $1200', 'Corruption = 1 (if amount > 0)', 
                              'Corruption = 1 (if amount > 1,200)'))
-
-
-
 ```
