@@ -227,7 +227,7 @@ Olken=Olken %>%
   mutate(auditstratnum=factor(auditstratnum))
 ```
 
-## (b)
+## (b) balance check of the randomization
 
 These three table shows the relationship between village characteristic and treatments (audit, intivation and comment respectively). The author uses a probit model where the dependent variables are treatment dummies. The standard error is clustered at subdistrict level, which is consists of several villages. The reason for cluster is the villages in the same subdistrict are easily to be affected by the change in part of them. From the table, we can know most of the village characteristics do not siginifcantly affect the dummies and the coefficient is very small. On the other hand, we can use the t-test among groups to test if there is significant difference among groups. This step is important because it can help to check how the balance of the treatment assignment after the randomization.
 
@@ -363,7 +363,7 @@ stargazer(model1, model2, model3, model4, type="text",
 ```
 
 
-## (d)
+## (d) Indoeshia law
 
 Another interesing finding from Olken is that corruption still happend for villages certainly auditted. He thinks it's possible because of the law in Indonesia that managers is unlikely to be punished for corruption the amount of which is under USD 1,200. To test the idea, we create a new variable.
 
@@ -376,7 +376,7 @@ Olken=Olken %>%
   mutate(true_realcorruption=if_else(realcorruption<0,0,realcorruption))
 ```
 
-## (e) 
+## (e) What if considering the threshold of punishment in law
 
 We can see the coefficient is far more larger and significant.
 
@@ -421,7 +421,7 @@ stargazer(model1, type='text',
 
 
 
-## (f)
+## (f) The effect on corruptioin probability
 
 Also, besides the corruption amount, we can also look at the corruption probability. In this case, we can find if we considering the threshold of indonesia law, the effect of audit is more significant.
 

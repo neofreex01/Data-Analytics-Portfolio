@@ -1674,11 +1674,11 @@ summary {
 <li><a href="#replication-of-olken-2007">2. Replication of Olken (2007)</a>
 <ul>
 <li><a href="#a-the-assumption-necessary-to-estimate-the-treatment-effect">(a) The assumption necessary to estimate the treatment effect</a></li>
-<li><a href="#b">(b)</a></li>
+<li><a href="#b-balance-check-of-the-randomization">(b) balance check of the randomization</a></li>
 <li><a href="#c-the-effect-of-audit-treatment">(c) The effect of audit treatment</a></li>
-<li><a href="#d">(d)</a></li>
-<li><a href="#e">(e)</a></li>
-<li><a href="#f">(f)</a></li>
+<li><a href="#d-indoeshia-law">(d) Indoeshia law</a></li>
+<li><a href="#e-what-if-considering-the-threshold-of-punishment-in-law">(e) What if considering the threshold of punishment in law</a></li>
+<li><a href="#f-the-effect-on-corruptioin-probability">(f) The effect on corruptioin probability</a></li>
 </ul></li>
 </ul>
 </div>
@@ -1853,8 +1853,8 @@ Olken &lt;- read_dta(&quot;./dataset/Olken.dta&quot;)
 Olken=Olken %&gt;%
   mutate(auditstratnum=factor(auditstratnum))</code></pre>
 </div>
-<div id="b" class="section level2">
-<h2>(b)</h2>
+<div id="b-balance-check-of-the-randomization" class="section level2">
+<h2>(b) balance check of the randomization</h2>
 <p>These three table shows the relationship between village characteristic and treatments (audit, intivation and comment respectively). The author uses a probit model where the dependent variables are treatment dummies. The standard error is clustered at subdistrict level, which is consists of several villages. The reason for cluster is the villages in the same subdistrict are easily to be affected by the change in part of them. From the table, we can know most of the village characteristics do not siginifcantly affect the dummies and the coefficient is very small. On the other hand, we can use the t-test among groups to test if there is significant difference among groups. This step is important because it can help to check how the balance of the treatment assignment after the randomization.</p>
 <pre class="r"><code>model1 &lt;- probitmfx(audit_rand ~ 
               zpop + totalmesjid + totalallocation + z4RABnumsubproj
@@ -1972,16 +1972,16 @@ stargazer(model1, model2, model3, model4, type=&quot;text&quot;,
 ## ===========================================================================================================================
 ## Note:                                                                                           *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
 </div>
-<div id="d" class="section level2">
-<h2>(d)</h2>
+<div id="d-indoeshia-law" class="section level2">
+<h2>(d) Indoeshia law</h2>
 <p>Another interesing finding from Olken is that corruption still happend for villages certainly auditted. He thinks it’s possible because of the law in Indonesia that managers is unlikely to be punished for corruption the amount of which is under USD 1,200. To test the idea, we create a new variable.</p>
 <pre class="r"><code>Olken=Olken %&gt;%
   mutate(corruption = lndiffeall4mainancil*totalprojusd) %&gt;%
   mutate(realcorruption=corruption-1200) %&gt;%
   mutate(true_realcorruption=if_else(realcorruption&lt;0,0,realcorruption))</code></pre>
 </div>
-<div id="e" class="section level2">
-<h2>(e)</h2>
+<div id="e-what-if-considering-the-threshold-of-punishment-in-law" class="section level2">
+<h2>(e) What if considering the threshold of punishment in law</h2>
 <p>We can see the coefficient is far more larger and significant.</p>
 <pre class="r"><code>model1 &lt;- lm(true_realcorruption ~ audit_rand + undfpm_rand+ fpm_rand+ auditstratnum,data=Olken)
 stargazer(model1, type=&#39;text&#39;,
@@ -2016,8 +2016,8 @@ stargazer(model1, type=&#39;text&#39;,
 ## =======================================================
 ## Note:                       *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
 </div>
-<div id="f" class="section level2">
-<h2>(f)</h2>
+<div id="f-the-effect-on-corruptioin-probability" class="section level2">
+<h2>(f) The effect on corruptioin probability</h2>
 <p>Also, besides the corruption amount, we can also look at the corruption probability. In this case, we can find if we considering the threshold of indonesia law, the effect of audit is more significant.</p>
 <pre class="r"><code>Olken=Olken %&gt;%
   mutate(corruption_min = if_else(corruption&gt;0,1,0)) %&gt;%
