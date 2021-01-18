@@ -12,7 +12,9 @@ editor_options:
 ---
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, echo = FALSE, tidy = TRUE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, tidy = TRUE, 
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, tidy = TRUE, 
+                      fig.align = 'center',
                       fig.path = "./figure/ps2/figure")
 tidy.opts=list(keep.blank.line=FALSE, width.cutoff=50)
 ```
