@@ -13,12 +13,11 @@ editor_options:
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, echo = FALSE, tidy = TRUE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, tidy = TRUE, 
-                      fig.path = "./figure-ps2/figure")
+                      fig.path = "./figure/ps2/figure")
 tidy.opts=list(keep.blank.line=FALSE, width.cutoff=50)
 ```
 
 ``````{r warning = FALSE, echo=FALSE, message = FALSE}
-library(oaxaca)
 library(stargazer)
 library(moderndive)
 library(lubridate)
@@ -27,20 +26,10 @@ library(tidyverse)
 library(data.table)
 library(maptools)
 library(ggplot2)
-# library(bbplot)
+library(ivreg)
 library(haven)
-library(lmtest)
-library(ggthemes)
-library(tibble)
-library(viridis)
-library(scales)
-library(ks)
-library(AER)
-library(oaxaca)
-library(Formula)
-library(reshape2)
-
 ```
+
 # 1. Wage analysis in Italy provinces
 
 ```{r warning = FALSE}
@@ -136,6 +125,7 @@ ggplot(data = within_variance_yearly,aes(x=year))+
 ## (c) How a province relate to the daily wage
 
 This table is the result of for province fixed effects. To interpret the table, we can say the dailywage of labor in VR is higher than BL about 0.05 in average, based on the same age and gender. We can find VR has the largest place effect, which is 0.05 higher than BL, However, with this table, we only can observe the place province effects on wages in 1995. Thus, we refer to the next figure to see how the place effect on wage changes. 
+
 ```{r}
 
 model1 = lm(data = df1, 
@@ -178,7 +168,9 @@ ggplot(data = place, aes(x = Year))+
 
 
 ## (d) Visualization
+
 This figure is a visualization of the line graph. We can find place effect decreased for all provinces here. It clearly shows there is less place effect in 2000 than 1990.
+
 ```{r}
 # Import the map dataframe
 italy_map <- map_data("italy")
@@ -228,25 +220,25 @@ ggplot() +
     space = "Lab", na.value = "grey50", guide = "colourbar", 
     breaks = c(3.75,3.85,3.95) )
 ```
-#2. Instrument variable and Omitted Variable Bias
 
-```{r warning = FALSE, echo=FALSE, message = FALSE}
+# 2. Instrument variable and Omitted Variable Bias
+
+```{r warning = FALSE}
 # Import data
 df4 = read.table("./dataset/colonies.out",header = T)
 ```
 
 ## (a) The relationship between institution quality and gdp
 
-This table suggests that institution quality and gdp have significantly positive relationship.
-
 ```{r}
-model = lm(data = df4, lgdp ~ colony + tropics + inst )
+model = lm(data = df4, lgdp ~ inst + colony + tropics  )
 stargazer(model, type = "text", header = FALSE)
 ```
 
+This table suggests that institution quality and gdp have significantly positive relationship. However, this does not mean institution quality has positive causal effect on log gdp.
 
 ## (b) Conditional mean of island with different background
-The condiational means of lgdp and inst for the combination of colony and tropics are shown in the table. For example, the first row shows the average gdp and the average institution quality of the islands which was colonized and is in tropics area.
+
 ```{r,}
 df4_summary = df4 %>%
   group_by(colony,tropics) %>%
@@ -254,53 +246,50 @@ df4_summary = df4 %>%
   ungroup() %>%
   mutate(colony = if_else(colony ==1,"Yes","No"), tropics = if_else(tropics==1,"Yes","No"))
 stargazer(df4_summary,type = "text", summary = FALSE, header = FALSE)
-
 ```
-## (c)
+
+The condiational means of lgdp and inst for the combination of colony and tropics are shown in the table. For example, the first row shows the average gdp and the average institution quality of the islands which was colonized and is in tropics area.
+
+## (c) OLS on covariates
 
 ```{r}
-
 model1 = lm(data = df4, lgdp ~ colony + tropics  + col_trop)
 model2 = lm(data = df4, inst ~ colony + tropics + col_trop)
-
-stargazer(model1,model2, type = "latex",title="Table 4(d)", header = FALSE)
-
+stargazer(model1,model2, type = "text", header = FALSE)
 ```
 
-## (d)
+## (d) instrument regression
 
-The result in the folloing table shows IV estimation. The coefficient of inst ($\gamma$) is the same as we did in (c) and (d)
+The result in the following table shows IV estimation. The coefficient of inst ($\gamma$) is the same as we did in (b) and (c)
 
 ```{r}
-model_2SLS = ivreg(data = df4, lgdp~colony+tropics+inst|col_trop+colony+tropics)
-stargazer(model_2SLS,type = "latex", header = FALSE)
-
+model_2SLS = ivreg(data = df4, 
+                   lgdp ~ inst + colony+tropics | col_trop+colony+tropics)
+stargazer(model_2SLS,type = "text", header = FALSE, 
+          title = '2 stage least square')
 ```
 
-##(d)
-
-The result is in the following table.
-We find that the coefficient of $\gamma$ is the same as (e), but the variance is different. It's because when we are doing 2SLS separately in two stages, we misidentify the error term. Thus, we care about the variance in (e) more.
+## (e) 2SLS regression
 
 ```{r}
 fit_inst = fitted.values( model2)
 df4 = cbind(df4, fit_inst)
-model_sec = lm(data = df4, lgdp ~ colony + tropics + fit_inst)
-stargazer(model2,model_sec, type = "latex", title = "Table 4(f)",header = FALSE)
+model_sec = lm(data = df4, lgdp ~ fit_inst + colony + tropics )
+stargazer(model2,model_sec, type = "text", 
+          title = "second stage",
+          header = FALSE)
 ```
 
-#3. IV with Heterogeneous Effects
-## (a)
-## (b)
-## (c)
+The table above shows the coefficient of institution quality is the same as (d), but the standard error is different. It's because when we are doing 2SLS separately in two stages, we misidentify the error term. Thus, we care about the variance in (d) more. That is, one unit of institution quality increases the log gdp by 4.888 siginifcantly, which is larger than the estimates obtained from simple oLS.
 
-```{r warning = FALSE, echo=FALSE, message = FALSE}
+# 3. IV with Heterogeneous Effects
+
+```{r warning = FALSE}
+# Import data
 df5 <- read_csv("./dataset/iv_ps2.csv")
 ```
 
-
-
-## (d)(i)
+## (a) Overidentification and wald estimate
 
 ```{r}
 df5_wald_Z1 = df5 %>%
@@ -308,155 +297,113 @@ df5_wald_Z1 = df5 %>%
   summarise(Y = mean(Y), Treatment = mean(`T`)) %>%
   ungroup()
   
-
-Wald_Z1 = (df5_wald_Z1$Y[2]-df5_wald_Z1$Y[1])/(df5_wald_Z1$Treatment[2]-df5_wald_Z1$Treatment[1])
+Wald_Z1 = 
+  (df5_wald_Z1$Y[2]-df5_wald_Z1$Y[1])/
+  (df5_wald_Z1$Treatment[2]-df5_wald_Z1$Treatment[1])
 
 df5_wald_Z2 = df5 %>%
   group_by(Z2) %>%
   summarise(Y = mean(Y), Treatment = mean(`T`)) %>%
   ungroup()
 
-Wald_Z2= (df5_wald_Z2$Y[2]-df5_wald_Z2$Y[1])/(df5_wald_Z2$Treatment[2]-df5_wald_Z2$Treatment[1])
+Wald_Z2= (df5_wald_Z2$Y[2]-df5_wald_Z2$Y[1])/
+  (df5_wald_Z2$Treatment[2]-df5_wald_Z2$Treatment[1])
 
 wald = data_frame(round(Wald_Z1,2),round(Wald_Z2,2))
 
-stargazer(wald,summary = FALSE, type = "latex", covariate.labels = c("Wald estimate (Z1)","Wald estimate (Z2)"),rownames = FALSE, header = FALSE)
-
-
+stargazer(wald,summary = FALSE, type = "text", 
+          covariate.labels = c("Wald estimate (Z1)",
+                               "Wald estimate (Z2)"),rownames = FALSE, 
+          header = FALSE)
 ```
-
-
 
 Overidentification are showns as follow:
 
-We reject the null hypothesis because the p-value of sargan test is 0.001 (In the result of Rmarkdown, it would be 0.0005)
-It means only one of the instruments is valid, so it's overidentified.
-
 ```{r}
-
 model_sargan = ivreg(data = df5, Y ~ `T` |Z1+Z2)
 sargan = summary(model_sargan,diagnostic = TRUE)$diagnostics
-stargazer(sargan, type="latex", header = FALSE, title = "sargan test")
-
-
+stargazer(sargan, type="text", header = FALSE, title = "sargan test")
 ```
 
-/
+We reject the null hypothesis because the p-value of sargan test is 0.001, 
+so we reject the null hypothesis. However, since this problem is about
+heterogeneous treatment effects, rejecting Sargan test means that either one of
+the IVs is invalid, or they are identifying distinct LATEs.
 
-##(d)(ii)
+## (b) ratio of the compliers of treatments
+
+```{r}
+df5 = df5 %>%
+  mutate(XT = X*T)
+# complier
+complier1 = ivreg(XT ~ T |Z1, data = df5)
+complier2 = ivreg(XT ~ T |Z2, data = df5)
+# output
+stargazer(complier1,complier2,summary = FALSE, rownames = FALSE,
+          type = "text", header = FALSE)
+
+```
 
 By Abadie(2002), the mean of compliers is the coefficient of T in the following Table. The coefficient of T in column(1) and column (2) is the mean for complier complied with Z1 and Z2 separately.  They are 0.881 and 0.168 separately.
 
-```{r}
+## (c) the CDFs of potential outcomes, Yi(1) and Yi(0)
 
-df5 = df5 %>%
-  mutate(XT = X*T)
-
-complier1 = ivreg(XT ~ T |Z1, data = df5)
-
-complier2 = ivreg(XT ~ T |Z2, data = df5)
-
-
-
-stargazer(complier1,complier2,summary = FALSE, rownames = FALSE, type = "latex", header = FALSE)
-
-```
-
-
-##(d)(iii)
-
-```{r}
-
-
-
+```{r fig.align= 'center'}
 test = seq(-3.4,3.8, by = 0.01)
-
 Z1_treated= seq(-3.4,3.8, by = 0.01)
 for (i in 1:721){
-  
   df5_test = df5 %>%
-  mutate(Dep_var = if_else(Y<=test[i],1,0),Dep_T = Dep_var*`T`,untreated = 1-`T`) 
-  
-  
+  mutate(Dep_var = if_else(Y<=test[i],1,0),Dep_T = Dep_var*`T`,untreated = 1-`T`)
   model1 = ivreg(Dep_T~`T`|Z1,data = df5_test)
-Z1_treated[i]=model1$coefficients[2]
-  
-  
+  Z1_treated[i]=model1$coefficients[2]
 }
-
 for( i in 1:721){
-  
   Z1_treated[i]= if_else(Z1_treated[i]<=1,Z1_treated[i],1)
-  
 }
-
 Z2_treated = seq(-3.4,3.8, by = 0.01)
-
 for (i in 1:721){
-  
   df5_test = df5 %>%
-  mutate(Dep_var = if_else(Y<=test[i],1,0),Dep_T = Dep_var*`T`,untreated = 1-`T`) 
-  
-  
+  mutate(Dep_var = if_else(Y<=test[i],1,0),Dep_T = Dep_var*`T`,untreated = 1-`T`)
   model1 = ivreg(Dep_T~`T`|Z2,data = df5_test)
-Z2_treated[i]=model1$coefficients[2]
-  
-  
+  Z2_treated[i]=model1$coefficients[2]
 }
 
 for( i in 1:721){
-  
   Z2_treated[i]= if_else(Z2_treated[i]<=1,Z2_treated[i],1)
-  
 }
-
-
 Z1_untreated= seq(-3.4,3.8, by = 0.01)
 for (i in 1:721){
-  
   df5_test = df5 %>%
-  mutate(Dep_var = if_else(Y<=test[i],1,0),untreated = 1-`T`,Dep_T = Dep_var*untreated) 
-  
-  
+  mutate(Dep_var = if_else(Y<=test[i],1,0),untreated = 1-`T`,
+         Dep_T = Dep_var*untreated) 
   model1 = ivreg(Dep_T~`T`|Z1,data = df5_test)
-Z1_untreated[i]=-model1$coefficients[2]
-  
-  
+  Z1_untreated[i]=-model1$coefficients[2]
 }
-
 for( i in 1:721){
-  
   Z1_untreated[i]= if_else(Z1_untreated[i]<=1,Z1_untreated[i],1)
-  
 }
-
-
 Z2_untreated= seq(-3.4,3.8, by = 0.01)
 for (i in 1:721){
-  
   df5_test = df5 %>%
-  mutate(Dep_var = if_else(Y<=test[i],1,0),untreated = 1-`T`,Dep_T = Dep_var*untreated) 
-  
-  
+  mutate(Dep_var = if_else(Y<=test[i],1,0),untreated = 1-`T`,
+         Dep_T = Dep_var*untreated) 
   model1 = ivreg(Dep_T~`T`|Z2,data = df5_test)
-Z2_untreated[i]=-model1$coefficients[2]
-  
-  
+  Z2_untreated[i]=-model1$coefficients[2]
 }
 
 for( i in 1:721){
-  
   Z2_untreated[i]= if_else(Z2_untreated[i]<=1,Z2_untreated[i],1)
-  
 }
 
 ggplot()+
-  geom_point(aes(x = test,y = Z1_treated,color = "Z1:Y(1)"),size = 0.2, alpha = 0.2)+
-  geom_point( aes(x = test,y = Z2_treated,color = "Z2:Y(1)"),size = 0.2,alpha = 0.2)+
+  geom_point(aes(x = test,y = Z1_treated,color = "Z1:Y(1)"),size = 0.2, 
+             alpha = 0.2)+
+  geom_point( aes(x = test,y = Z2_treated,color = "Z2:Y(1)"),size = 0.2,
+              alpha = 0.2)+
   geom_point( aes(x = test,y = Z1_untreated,color = "Z1:Y(0)"),size = 0.2)+
   geom_point( aes(x = test,y = Z2_untreated,color = "Z2:Y(0)"),size = 0.2)+
-  labs(x = "Y", y = "Probability", title = "Figure(5) (d)(iii)",
-       caption  = "CDF of potential outcome for compliers with different instrument")+
+  labs(x = "Y", y = "Probability",
+       title  = "CDF of potential outcome for compliers with instrument")+
   theme_classic()+
   guides(colour = guide_legend(override.aes = list(size= 3)))+
   scale_color_discrete(breaks = c("Z1:Y(0)","Z2:Y(0)","Z2:Y(1)","Z1:Y(1)"))+
@@ -465,7 +412,7 @@ ggplot()+
 ```
 
 
-
+The CDFs is the potential outcomes, Yi(1) and Yi(0), for individuals that comply with each instrument.
 
 
 
