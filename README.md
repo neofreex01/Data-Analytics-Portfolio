@@ -7,3 +7,4 @@
     + [Wage Analysis in Italy (Variance decomopition), sargan test, compliers and instrumental variables](https://github.com/neofreex01/ds_portfolio/blob/main/R(2019-2020)/Econmetrics%20problem%20sets/Econ-ps2.md)
     + [Event study and Dynamic Panel model (Patrick Kline, 2011)](https://github.com/neofreex01/ds_portfolio/blob/main/R(2019-2020)/Econmetrics%20problem%20sets/event-study-and-dynamic-panel.md)
     + [Event study with propensity score matching strategy (how layoff affects labor income)](https://github.com/neofreex01/ds_portfolio/blob/main/R(2019-2020)/Econmetrics%20problem%20sets/Event-study-with-matching.md)
+    + [Regression discontinuity (Auffhammer, Maximilian, and Ryan Kellogg(2011))[https://github.com/neofreex01/ds_portfolio/blob/main/R(2019-2020)/Econmetrics%20problem%20sets/Replication1-finalVer..pdf]
