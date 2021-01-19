@@ -52,24 +52,24 @@ library(fastDummies)
 
 ```
 
+# Two way fixed effect (AKM model)
 
-##5(a)
+##5 
+```{r}
+# Import data
+ df4 <- read_csv("dataset/short_fake_matched_employer_employee.csv")
+```
 
-Please refer to the code.
+(a) Look for the largest connected set in the dataset
 
 ```{r}
-
 edges = df4 %>%
   select(id,firmid)
-
 g = graph_from_data_frame(edges,directed = F)
-
 cl = clusters(g)
 max(cl$csize)
 res = split(names(cl$membership), cl$membership)[1]
 res = res$`1`
-
-
 ```
 
 ##5(b)
