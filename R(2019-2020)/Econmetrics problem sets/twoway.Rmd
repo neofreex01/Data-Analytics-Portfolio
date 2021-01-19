@@ -1,0 +1,233 @@
+---
+title: "Untitled"
+author: "Hung-Hsiang CHIEN"
+output:
+  html_document:
+    keep_md: true
+    df_print: paged
+    toc: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE, echo = FALSE, tidy = TRUE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      tidy = TRUE, fig.align = 'center',
+                      fig.path = "./figure/twoway/figure")
+tidy.opts=list(keep.blank.line=FALSE, width.cutoff=50)
+```
+
+```{r warning = FALSE, echo=FALSE, message = FALSE}
+library(stargazer)
+library(lfe)
+library(moderndive)
+library(tidyverse)
+library(haven)
+library(lubridate)
+library(stringr)
+library(data.table)
+library(maptools)
+library(maps)
+library(usmap)
+library(statar)
+library(purrr)
+library(cobalt)
+library(broom)
+library(MatchIt)
+
+library(ggplot2)
+library(ggthemes)
+library(tibble)
+library(viridis)
+library(scales)
+library(ks)
+library(AER)
+
+library(igraph)
+library(fastDummies)
+
+```
+
+
+##5(a)
+
+Please refer to the code.
+
+```{r}
+
+edges = df4 %>%
+  select(id,firmid)
+
+g = graph_from_data_frame(edges,directed = F)
+
+cl = clusters(g)
+max(cl$csize)
+res = split(names(cl$membership), cl$membership)[1]
+res = res$`1`
+
+
+```
+
+##5(b)
+
+In the t-test table, we can find although the p-value for the last three items are quite small, but the difference is so small that we cannot say there is an obvious difference between these two datasets.
+
+```{r}
+
+df5 = df4 %>%
+  filter(id %in% res & firmid %in% res)
+
+df4_summary = df4 %>%
+  select(age,female,log_dailywages,log_earnings) %>%
+  mutate(status = "innitial")
+
+df5_summary = df5 %>%
+  select(age,female,log_dailywages,log_earnings) %>%
+  mutate(status = "Largest set") %>%
+  rbind(df4_summary)
+
+t1 = t.test(age~status,data = df5_summary)
+t2 = t.test(female~status, data = df5_summary)
+t3 = t.test(log_earnings~status, data = df5_summary)
+t4 = t.test(log_dailywages~status, data = df5_summary)
+
+
+tab = map_df(list(t1,t2,t3,t4),tidy)
+
+
+tab  = tab %>% select(1:5)
+
+colnames(tab) = c("Variable","Control","treated","t-statistic","p-value")
+
+a = c("age","female","log_earnings","log_dailywages")
+
+tab  = tab %>%
+    mutate(Variable = a)  
+
+stargazer(tab, summary = F, header = F, type = "latex")
+
+
+```
+
+##5(c)
+
+
+```{r}
+
+df5 = df5 %>%
+  arrange(id,year)
+
+
+
+x = Matrix(0,nrow = length(df5$log_earnings), ncol =length(unique(df5$id))+length(unique(df5$firmid)), sparse = T)
+
+tab = as.data.frame(table(df5$id))
+
+id = tab$Var1
+id_freq = tab$Freq
+x[1,1]=1
+
+b=2088349
+
+system.time(
+  for (i in 246332:length(id)) {
+  
+  a = b+1
+  b = b+id_freq[i]
+  x[c(a:b),i]=1
+  
+}
+  
+)
+
+
+
+
+
+firm_id = unique(df5$firmid)
+c = which(df5$firmid == firm_id[1])
+d = 398437
+X=x
+X[c,d]=1
+
+system.time(
+for(i in 1:length(firm_id)){
+  
+  c = which(df5$firmid ==firm_id[i])
+  d = 398436+i
+  X[c,d] = 1
+  
+}
+)
+
+x=X[,-437681]
+
+y = Matrix(df5$log_earnings,sparse = T)
+
+
+beta = cgsolve(crossprod(x),crossprod(x,y))
+
+
+```
+
+##5(d)
+
+```{r}
+id_fixed = beta[c(1:length(id)),]
+firm_fixed = beta[c(398437:437680)]
+
+
+firm_id_2 = firm_id[1:39244]
+
+id_fixed = cbind(tab,id_fixed) %>%
+  select(Var1,id_fixed) %>%
+  mutate(Var1 = as.numeric(as.character(Var1)))
+
+
+firm_fixed = as.data.frame(cbind(firm_id_2,firm_fixed))
+
+
+
+df5_d = df5%>%
+  left_join(id_fixed,by = c("id" = "Var1"))
+
+df5_d = df5_d %>%
+  left_join(firm_fixed,by = c("firmid" = "firm_id_2")) %>%
+  mutate(firm_fixed = if_else(is.na(firm_fixed),0,firm_fixed)) %>%
+  mutate(resid = log_earnings - id_fixed - firm_fixed)
+
+
+
+
+df5_summary = df5_d %>%
+  summarise(total_var = var(log_earnings),
+            `Worker Effect` = var(id_fixed),
+            `Firm Effect` = var(firm_fixed), 
+            "2cov" = cov(id_fixed,firm_fixed),
+            "residual" = var(resid))
+
+stargazer(df5_summary, header = F, type = "latex", summary = F) 
+
+df5_d = df5_d %>%
+  group_by(year) %>%
+  summarise(total_var = var(log_earnings),
+            `Worker Effect` = var(id_fixed),
+            `Firm Effect` = var(firm_fixed), 
+            "2cov" = cov(id_fixed,firm_fixed),
+            "residual" = var(resid)) %>%
+  ungroup()
+
+
+df5_test = df5_d %>%
+  gather(key = "Category", value = "variance",-year) %>%
+  filter(Category != "total_var")
+
+
+ggplot(data = df5_test, aes(x = year,y= variance,fill = Category))+
+  geom_area()
+
+```
