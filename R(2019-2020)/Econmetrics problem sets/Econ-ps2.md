@@ -1,19 +1,3 @@
----
-title: "Problem Set 2"
-author: "Hung-Hsiang CHIEN"
-date: "2020-02-26"
-output:
-  html_document:
-    keep_md: true
-    df_print: paged
-    toc: yes
-editor_options:
-  chunk_output_type: inline
----
-
-
-
-
 
 # 1. Wage analysis in Italy provinces
 

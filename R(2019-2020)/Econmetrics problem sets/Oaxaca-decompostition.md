@@ -1,21 +1,3 @@
----
-title: "Oaxa Decompostion and reweighting"
-author: "Hung-Hsiang(Kevin), CHIEN"
-date: "2021年1月18日"
-output:
-  html_document:
-    keep_md: true
-    df_print: paged
-    toc: yes
-editor_options:
-  chunk_output_type: inline
----
-
-
-
-
-
-
 # 1. Oaxaca decomposition and Autor, Katz and Kearney (2008)
 
 Brief introduction: This paper try to find the trend of wage in US. Also, they use the census data in 1979 and 1997 to look for what is the main reason for the change in wages in US, the change of demographic or the erosion of minimum wage?

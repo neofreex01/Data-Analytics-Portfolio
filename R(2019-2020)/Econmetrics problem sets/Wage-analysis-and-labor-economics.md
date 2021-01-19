@@ -1,17 +1,3 @@
----
-title: "Problem set 1 Research Design"
-author: "Hung-Hsiang Chien"
-output:
-  html_document:
-    keep_md: true
-    df_print: paged
-    toc: yes
-editor_options:
-  chunk_output_type: inline
----
-
-
-
 # 1. Wage overview in Italia
 
 This question aims to answer the relationship between wage and age in Italy. Moreover, it also would like to discover if there is any difference of the relationship between male and female.
