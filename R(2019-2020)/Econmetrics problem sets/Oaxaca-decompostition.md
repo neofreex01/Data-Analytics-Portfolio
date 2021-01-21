@@ -195,4 +195,4 @@ ggplot() + geom_line(stat = "density", aes(x = df_f$lnhr_wage, color = as.factor
 <img src="./figure/oaxaca/figureunnamed-chunk-9-1.png" style="display: block; margin: auto;" />
 
 The 1997 distribution reweighted so that it has 1979 demographics is shown
-in the figure. The distribution is much closer to the 1997 distribution than the 1979 distribution. That is, the changes in the wage distribution cannot only be explained by demographics, demographics increased inequality but only slightly.
+in the figure. The distribution is much closer to the 1997 distribution than the 1979 distribution. That is, the changes in the wage distribution cannot only be explained by demographics. Demographics increased inequality only slightly, and the major factor of the change of the distribution could be the erosion of minimum wage.
