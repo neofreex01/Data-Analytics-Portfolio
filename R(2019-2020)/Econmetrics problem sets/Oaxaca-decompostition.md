@@ -1,3 +1,21 @@
+---
+title: "Oaxa Decompostion and reweighting"
+author: "Hung-Hsiang(Kevin), CHIEN"
+date: "2021年1月18日"
+output:
+  html_document:
+    keep_md: true
+    df_print: paged
+    toc: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+
+
+
+
+
 # 1. Oaxaca decomposition and Autor, Katz and Kearney (2008)
 
 Brief introduction: This paper try to find the trend of wage in US. Also, they use the census data in 1979 and 1997 to look for what is the main reason for the change in wages in US, the change of demographic or the erosion of minimum wage?
@@ -78,7 +96,17 @@ stargazer(dif, summary = FALSE, header = FALSE, type = "text")
 ## Unexplained     0.284
 ## ---------------------
 ```
-This table tells that most of the wage gap between genders is unexplained, which could be supposed as discrimination. The explained gender is due to the different characteristic of women and men.
+The table tells that most of the wage gap between genders is unexplained, which could be supposed as discrimination. The explained gender is due to the different characteristic of women and men.
+
+
+```r
+plot.oaxaca(results, decomposition = "twofold", group.weight = -1)
+```
+
+<img src="./figure/oaxaca/figureunnamed-chunk-6-1.png" style="display: block; margin: auto;" />
+
+This charts represents (1) The characterristics are quite similar between men and women. (2) The return to age are greater for male. That is, even if at the same age, the male still have more wages than female.
+
 
 ## (c) Wage distribution shiftment
 
@@ -88,7 +116,7 @@ ggplot(data = df_b, aes(x = lnhr_wage, color = year)) + geom_line(stat = "densit
     theme_classic() + labs(x = "Wage", y = "kdensity", title = "Log hourly wage distribution")
 ```
 
-<img src="./figure/oaxaca/figureunnamed-chunk-6-1.png" style="display: block; margin: auto;" />
+<img src="./figure/oaxaca/figureunnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
 This figure shows the distribution of wages in 1979 and 1997. 
 The 1979 distribution has a "spike" while the 1997 distribution does not. The 1997 distribution has more dispersal overal, with more mass in the lower and upper tail.
@@ -113,7 +141,7 @@ ggplot(data = df_d_black, aes(x = lnhr_wage, color = as.factor(year))) + geom_li
     theme(legend.title = element_blank())
 ```
 
-<img src="./figure/oaxaca/figureunnamed-chunk-7-1.png" style="display: block; margin: auto;" />
+<img src="./figure/oaxaca/figureunnamed-chunk-8-1.png" style="display: block; margin: auto;" />
 
 ```r
 ggplot(data = df_d_white, aes(x = lnhr_wage, color = as.factor(year))) + geom_line(stat = "density") + 
@@ -121,7 +149,7 @@ ggplot(data = df_d_white, aes(x = lnhr_wage, color = as.factor(year))) + geom_li
     theme(legend.title = element_blank())
 ```
 
-<img src="./figure/oaxaca/figureunnamed-chunk-7-2.png" style="display: block; margin: auto;" />
+<img src="./figure/oaxaca/figureunnamed-chunk-8-2.png" style="display: block; margin: auto;" />
 
 The log hourly wage distribution in 1979 and 1997 for black men is shown in
 the firt graph.The distribution remarkably shifted to the left. The log hourly wage distribution for women is shown in the second fiture, and shows a similar pattern to the overall distribution of increasing spread and erosion of the minimum wage.
@@ -192,7 +220,7 @@ ggplot() + geom_line(stat = "density", aes(x = df_f$lnhr_wage, color = as.factor
     title = "Log hourly wage distribution", color = "Year", linetype = "counterfactual")
 ```
 
-<img src="./figure/oaxaca/figureunnamed-chunk-9-1.png" style="display: block; margin: auto;" />
+<img src="./figure/oaxaca/figureunnamed-chunk-10-1.png" style="display: block; margin: auto;" />
 
 The 1997 distribution reweighted so that it has 1979 demographics is shown
 in the figure. The distribution is much closer to the 1997 distribution than the 1979 distribution. That is, the changes in the wage distribution cannot only be explained by demographics. Demographics increased inequality only slightly, and the major factor of the change of the distribution could be the erosion of minimum wage.
