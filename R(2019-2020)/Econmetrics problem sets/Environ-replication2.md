@@ -4,10 +4,6 @@ author: "Hung-Hsiang CHIEN"
 output:
   html_document:
     keep_md: true
-    df_print: paged
-    toc: yes
-editor_options:
-  chunk_output_type: inline
 ---
 
 
@@ -43,7 +39,7 @@ table3_1 = transpose(df1 %>% filter(alt == 1, sample_af == 1) %>% dummy_columns(
         weight)), Ferry_SD = sqrt(weighted.var(mode_3, weight)), Hovercrat_SD = sqrt(weighted.var(mode_4, 
         weight))))
 table3_1 = as.data.frame(cbind(table3_1[c(1:4), ], table3_1[c(5:8), ]))
-colnames(table3_1) = c("Mean <br> (Africans)", "SD <br> (Africans)")
+colnames(table3_1) = c("Mean (Africans)", "SD (Africans)")
 # Transpose data for the second column
 table3_2 = transpose(df1 %>% filter(alt == 1, sample_noaf == 1) %>% dummy_columns(select_columns = "mode") %>% 
     summarise(Helicopter = weighted.mean(mode_1, weight), `Water Taxi` = weighted.mean(mode_2, 
@@ -52,7 +48,7 @@ table3_2 = transpose(df1 %>% filter(alt == 1, sample_noaf == 1) %>% dummy_column
         weight)), Ferry_SD = sqrt(weighted.var(mode_3, weight)), Hovercrat_SD = sqrt(weighted.var(mode_4, 
         weight))))
 table3_2 = as.data.frame(cbind(table3_2[c(1:4), ], table3_2[c(5:8), ]))
-colnames(table3_2) = c("Mean <br> (Non-Africans)", "SD <br> (Non-Africans)")
+colnames(table3_2) = c("Mean (Non-Africans)", "SD (Non-Africans)")
 # Transpose data for the third column
 table3_3 = transpose(df1 %>% filter(alt == 1, sample_all == 1) %>% dummy_columns(select_columns = "mode") %>% 
     summarise(Helicopter = weighted.mean(mode_1, weight), `Water Taxi` = weighted.mean(mode_2, 
@@ -61,26 +57,26 @@ table3_3 = transpose(df1 %>% filter(alt == 1, sample_all == 1) %>% dummy_columns
         weight)), Ferry_SD = sqrt(weighted.var(mode_3, weight)), Hovercrat_SD = sqrt(weighted.var(mode_4, 
         weight))))
 table3_3 = as.data.frame(cbind(table3_3[c(1:4), ], table3_3[c(5:8), ]))
-colnames(table3_3) = c("Mean <br> (Full sample)", "SD <br> (Full sample")
+colnames(table3_3) = c("Mean (Full sample)", "SD (Full sample)")
 
 table3 = bind_cols(table3_1, table3_2, table3_3) %>% mutate(`Transportation choices` = c("Helicopter", 
     "Water Taxi", "Ferry", "Hovercraft"))
 # Table
+col_label = c("Mean <br>Africans", "SD <br>(Africans)", "Mean <br>(Non-Africans)", 
+    "SD <br>(Non-Africans)", "Mean <br>(Full sample)", "SD <br>(Full sample)")
 table3 = table3[, c(7, 1:6)]
-stargazer(table3, header = F, title = "Transportation choices", colnames = T, summary = F, 
-    digits = 2, type = "html", rownames = F)
+stargazer(table3[], header = F, title = "Transportation choices", summary = F, digits = 2, 
+    type = "html", rownames = F, out = "table1.html", column.labels = col_label)
 ```
 
-```
-## 
-## <table style="text-align:center"><caption><strong>Transportation choices</strong></caption>
-## <tr><td colspan="7" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Transportation choices</td><td>Mean < br> (Africans)</td><td>SD < br> (Africans)</td><td>Mean < br> (Non-Africans)</td><td>SD < br> (Non-Africans)</td><td>Mean < br> (Full sample)</td><td>SD < br> (Full sample</td></tr>
-## <tr><td colspan="7" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Helicopter</td><td>0.02</td><td>0.13</td><td>0.03</td><td>0.16</td><td>0.02</td><td>0.14</td></tr>
-## <tr><td style="text-align:left">Water Taxi</td><td>0.20</td><td>0.40</td><td>0.36</td><td>0.48</td><td>0.25</td><td>0.43</td></tr>
-## <tr><td style="text-align:left">Ferry</td><td>0.67</td><td>0.47</td><td>0.36</td><td>0.48</td><td>0.57</td><td>0.50</td></tr>
-## <tr><td style="text-align:left">Hovercraft</td><td>0.11</td><td>0.32</td><td>0.25</td><td>0.43</td><td>0.16</td><td>0.37</td></tr>
-## <tr><td colspan="7" style="border-bottom: 1px solid black"></td></tr></table>
-```
+
+<table style="text-align:center"><caption><strong>Transportation choices</strong></caption>
+<tr><td colspan="7" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Transportation choices</td><td>Mean (Africans)</td><td>SD (Africans)</td><td>Mean (Non-Africans)</td><td>SD (Non-Africans)</td><td>Mean (Full sample)</td><td>SD (Full sample)</td></tr>
+<tr><td colspan="7" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Helicopter</td><td>0.02</td><td>0.13</td><td>0.03</td><td>0.16</td><td>0.02</td><td>0.14</td></tr>
+<tr><td style="text-align:left">Water Taxi</td><td>0.20</td><td>0.40</td><td>0.36</td><td>0.48</td><td>0.25</td><td>0.43</td></tr>
+<tr><td style="text-align:left">Ferry</td><td>0.67</td><td>0.47</td><td>0.36</td><td>0.48</td><td>0.57</td><td>0.50</td></tr>
+<tr><td style="text-align:left">Hovercraft</td><td>0.11</td><td>0.32</td><td>0.25</td><td>0.43</td><td>0.16</td><td>0.37</td></tr>
+<tr><td colspan="7" style="border-bottom: 1px solid black"></td></tr></table>
   
 
   
