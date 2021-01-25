@@ -2,7 +2,7 @@
 
 Brief introduction: The only way for travelers to reach Sierra Leone’s Lungi International Airport from the capital of Freetown is to cross an estuary by four transport options (water taxi, ferry, helicoptor and hovercraft.) The authors develop a transport choice model based on the ticket price, individual hourly wage and the fatality rate to estimating the trade-off between mortality risk and cost. Then, they collected questionnaire at the airport as to verify the model and hypothesis they developed. The respondents includes Africans (mostly middle class) and non-Africans (traveller). The pros and cons of each transport mode is shown as the table followed.
 
-<img src="./figure/envrion2/brief.png" style="display: block; margin: auto;" />
+<img src="./figure/envrion2/brief.PNG" style="display: block; margin: auto;" />
 
 ## (1) Summary statistics for races
 
@@ -161,10 +161,6 @@ stargazer(panelb, header = F, summary = F, digits = 2, colnames = T, " Responden
 <tr><td style="text-align:left">Self-reported life expectancy</td><td>42.75</td><td>11.90</td><td>39.77</td><td>12.27</td><td>41.69</td><td>12.10</td></tr>
 <tr><td style="text-align:left">Self-reported fatalism</td><td>4.21</td><td>3.05</td><td>3.27</td><td>2.58</td><td>3.87</td><td>2.92</td></tr>
 <tr><td colspan="7" style="border-bottom: 1px solid black"></td></tr></table>
-
-<table style="text-align:center"><tr><td colspan="1" style="border-bottom: 1px solid black"></td></tr><tr><td>1</td></tr>
-<tr><td colspan="1" style="border-bottom: 1px solid black"></td></tr><tr><td>Respondent characteristics and attitudes</td></tr>
-<tr><td colspan="1" style="border-bottom: 1px solid black"></td></tr></table>
 
 This table presents the characteristics of the respondents. Most of the respondents are highly-educated (complete university or more). Besides, the wage and education of African travellers are higher than the average in their nations. Therefore, the africans of the sample are elites in the local country. 
 
@@ -329,14 +325,6 @@ for (i in 1:6) {
 <tr><td style="text-align:left"></td><td colspan="6" style="text-align:right"><sup>**</sup>Significant at the 5 percent level.</td></tr>
 <tr><td style="text-align:left"></td><td colspan="6" style="text-align:right"><sup>*</sup>Significant at the 10 percent level.</td></tr>
 </table>
-
-```r
-# a = c(a[c(1:16,20,17,21,22,18,19)],"\\hline \\\\[-1.8ex] ",a[23:31])
-# a[18] =  "Observations (respondent-alternative options) & 
-#           3,281 & 3,281 & 2,124 & 2,124 & 5,405 & 5,405 \\\\ " 
-# 
-# cat(a,sep  = "\n")
-```
 
 This table shows the conditional logit model for africans and non-africans. The model uses ticket price, observed fatality, time cost (depends on the wage of the individual) and quality of transport choices as independent variables to estimate the value of a statistical life. The first two rows mean if a transport mode is safer (cheaper), then travellers is more likely to take it.
 
