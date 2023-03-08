@@ -18,4 +18,4 @@
 
 ## Presentations
 ### dbt
-+ GDG:Taipei & dbt Taipei: [dbt introducion](https://docs.google.com/presentation/d/1rTTefvdfqtHP70KFAX_BiFbVlxCDP-TBPDX0P_XgaLM/edit?usp=sharing)
++ GDG-Taipei & dbt-Taipei: [dbt introducion](https://docs.google.com/presentation/d/1rTTefvdfqtHP70KFAX_BiFbVlxCDP-TBPDX0P_XgaLM/edit?usp=sharing)
